@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const API_BASE = 'https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com';
 
@@ -88,53 +89,17 @@ function App() {
   });
 
   return (
-    <div className="App">
-      <h1>Task Manager</h1>
-
-      <h2>Create or Update Task</h2>
-      <input name="userId" placeholder="User ID" onChange={handleChange} />
-      <input name="title" placeholder="Title" onChange={handleChange} />
-      <textarea name="description" placeholder="Description" onChange={handleChange}></textarea>
-      <select name="status" onChange={handleChange}>
-        <option value="pending">Pending</option>
-        <option value="in-progress">In Progress</option>
-        <option value="completed">Completed</option>
-      </select>
-      <select name="priority" onChange={handleChange}>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
-      <input type="date" name="due_date" onChange={handleChange} />
-      <input type="file" name="file" onChange={handleChange} />
-
-      <button onClick={handleCreate}>Create Task</button>
-      <input placeholder="Task ID to Update" onChange={e => setTaskIdToUpdate(e.target.value)} />
-      <button onClick={handleUpdate}>Update Task</button>
-
-      <h2>All Tasks</h2>
-      <ul>
-        {tasks.map(task => (
-          <li key={task.taskId}>
-            <strong>{task.title}</strong> - {task.status}
-            <button onClick={() => handleDelete(task.taskId)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-
-      <h2>View Task by ID</h2>
-      <input placeholder="Task ID" onChange={e => setTaskIdToView(e.target.value)} />
-      <button onClick={handleView}>View Task</button>
-      {viewedTask && (
-        <div>
-          <h3>{viewedTask.title}</h3>
-          <p>{viewedTask.description}</p>
-          <p>Status: {viewedTask.status}</p>
-          <p>Priority: {viewedTask.priority}</p>
-          {viewedTask.file_url && <a href={viewedTask.file_url} target="_blank">View File</a>}
-        </div>
-      )}
-    </div>
+    <Router>
+      <div className="App">
+        <h1 className="text-3xl font-bold">Task Manager</h1>
+        <Routes>
+          <Route path="/create" element={<CreateTask />} />
+          <Route path="/update" element={<UpdateTask />} />
+          <Route path="/tasks" element={<TaskList />} />
+          <Route path="/view" element={<ViewTask />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
