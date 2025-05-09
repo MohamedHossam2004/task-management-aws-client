@@ -20,6 +20,8 @@ import {
   FaExclamationTriangle,
   FaTasks,
 } from "react-icons/fa";
+import { getCookie } from "../utils/cookieUtils";
+import api from "../utils/apiUtils";
 
 const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com";
 
@@ -36,7 +38,19 @@ const TaskList = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks`);
+        const token = getCookie('access_token');
+        
+        if (!token) {
+          console.error("No access token found");
+          return;
+        }
+        
+        const res = await fetch(`${API_BASE}/tasks`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
         const data = await res.json();
         setTasks(data);
       } catch (error) {
@@ -49,10 +63,18 @@ const TaskList = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this task?")) {
+    if (confirm('Are you sure you want to delete this task?')) {
       try {
-        await fetch(`${API_BASE}/tasks/${id}`, { method: "DELETE" });
-        setTasks(tasks.filter((task) => task.taskId !== id));
+        const token = getCookie('access_token');
+        
+        await fetch(`${API_BASE}/tasks/${id}`, { 
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        setTasks(tasks.filter(task => task.taskId !== id));
       } catch (error) {
         console.error("Failed to delete task:", error);
       }
@@ -118,9 +140,10 @@ const TaskList = () => {
           </h2>
           <p className="text-gray-500 mt-1">Manage your tasks efficiently</p>
         </div>
-        <button
-          onClick={() => navigate("/create")}
+        <button 
+          onClick={() => navigate('/create')}
           className="flex items-center bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-5 py-2 rounded-md shadow-md transition-all hover:shadow-lg transform hover:-translate-y-1 w-full md:w-auto justify-center"
+          disabled={!getCookie('access_token')}
         >
           <FaPlus className="mr-2" /> Add New Task
         </button>
@@ -309,16 +332,30 @@ const TaskList = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-lg p-10 text-center border border-dashed border-gray-300">
-          <div className="bg-teal-100 inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
-            <FaTasks className="text-3xl text-teal-600" />
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded my-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <FaExclamationTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-red-700">{error}</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            No tasks found
-          </h3>
-          <p className="text-gray-500 mb-6">
-            No tasks match your current filter criteria
-          </p>
+        )}
+      
+        {!error && filteredTasks.length === 0 && (
+          <div className="bg-white rounded-lg shadow-lg p-10 text-center border border-dashed border-gray-300">
+            <div className="bg-teal-100 inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
+              <FaTasks className="text-3xl text-teal-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              No tasks found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              No tasks match your current filter criteria
+            </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => {
