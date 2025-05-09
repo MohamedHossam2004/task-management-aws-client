@@ -17,20 +17,22 @@ const Login = () => {
       navigate(from, { replace: true });
       return;
     }
-
-    // Add state parameter to prevent CSRF attacks
-    const state = Math.random().toString(36).substring(2);
-    sessionStorage.setItem('oauth_state', state);
+    
+    // Clear any existing state on component mount
+    sessionStorage.removeItem('oauth_state');
     
     // Auto-redirect is disabled for development purposes
     // Uncomment for production use
-    // redirectToCognitoLogin(state);
+    // handleLoginClick();
   }, [navigate, from]);
 
   // Function to manually trigger the redirect
   const handleLoginClick = () => {
-    const state = Math.random().toString(36).substring(2);
+    // Generate state parameter to prevent CSRF attacks
+    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    // Save the state in session storage
     sessionStorage.setItem('oauth_state', state);
+    // Redirect to Cognito login
     redirectToCognitoLogin(state);
   };
 
