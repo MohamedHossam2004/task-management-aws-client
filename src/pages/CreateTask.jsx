@@ -11,6 +11,7 @@ import {
   FaUpload,
   FaExclamationCircle,
   FaSpinner,
+  FaPlus
 } from "react-icons/fa"
 
 const CreateTask = () => {
@@ -49,7 +50,7 @@ const CreateTask = () => {
       const payload = { ...form, file: fileData }
 
       // Replace with your actual API endpoint
-      const API_BASE = process.env.REACT_APP_API_BASE || "/api"
+      const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com"
       const res = await fetch(`${API_BASE}/tasks`, {
         method: "POST",
         headers: {
@@ -80,14 +81,21 @@ const CreateTask = () => {
     })
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6">
-      <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-green-500">
-        <div className="px-6 py-4">
-          <div className="flex items-center space-x-2 mb-1">
-            <FaTasks className="h-6 w-6 text-green-500" />
-            <h2 className="text-2xl font-bold text-gray-800">Create New Task</h2>
-          </div>
-          <p className="text-gray-600 mb-6">Fill in the details below to create a new task</p>
+    <div className="p-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+            <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-2 rounded-lg mr-3 shadow-lg">
+              <FaPlus className="h-6 w-6" />
+            </div>
+            Create New Task
+          </h2>
+          <p className="text-gray-500 mt-1">Fill in the details below to create a new task</p>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <div className="px-2 py-4">
 
           {error && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
@@ -110,7 +118,7 @@ const CreateTask = () => {
                 placeholder="Enter user ID"
                 value={form.userId}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -125,7 +133,7 @@ const CreateTask = () => {
                 placeholder="Enter task title"
                 value={form.title}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -140,7 +148,7 @@ const CreateTask = () => {
                 placeholder="Enter task description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent min-h-[100px]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent min-h-[100px]"
               />
             </div>
 
@@ -155,7 +163,7 @@ const CreateTask = () => {
                   name="status"
                   value={form.status}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 >
                   <option value="pending">Pending</option>
                   <option value="in-progress">In Progress</option>
@@ -173,7 +181,7 @@ const CreateTask = () => {
                   name="priority"
                   value={form.priority}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 >
                   <option value="high" className="text-red-500 font-medium">
                     High
@@ -199,7 +207,7 @@ const CreateTask = () => {
                 type="date"
                 value={form.due_date}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -226,11 +234,11 @@ const CreateTask = () => {
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 bg-gray-50">
+        <div className="mt-6 px-2 py-4 bg-gray-50 rounded-b-lg">
           <button
             className={`w-full py-3 px-4 rounded-md font-medium text-white transition-colors ${
-              isSubmitting ? "bg-green-400" : "bg-green-600 hover:bg-green-700"
-            }`}
+              isSubmitting ? "bg-teal-400" : "bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700"
+            } shadow-md transform hover:-translate-y-1 hover:shadow-lg`}
             onClick={handleCreate}
             disabled={isSubmitting}
           >
@@ -240,7 +248,9 @@ const CreateTask = () => {
                 Creating Task...
               </div>
             ) : (
-              "Create Task"
+              <div className="flex items-center justify-center">
+                <FaPlus className="mr-2" /> Create Task
+              </div>
             )}
           </button>
         </div>
