@@ -27,7 +27,13 @@ const AuthCallback = () => {
         const savedState = sessionStorage.getItem('oauth_state');
         const urlState = urlParams.get('state');
         
-        if (savedState !== urlState) {
+        console.log('Debug State Parameter:', { 
+          savedState, 
+          urlState, 
+          match: savedState === urlState 
+        });
+        
+        if (!savedState || !urlState || savedState !== urlState) {
           throw new Error('Invalid state parameter. Possible CSRF attack.');
         }
         
@@ -42,11 +48,18 @@ const AuthCallback = () => {
         tokenData.append('code', authorizationCode);
         tokenData.append('redirect_uri', cognitoConfig.REDIRECT_SIGN_IN);
         
-        const tokenResponse = await axios.post(tokenEndpoint, tokenData, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
+        console.log('Token Exchange Request:', {
+          endpoint: tokenEndpoint,
+          clientId: cognitoConfig.USER_POOL_WEB_CLIENT_ID,
+          redirectUri: cognitoConfig.REDIRECT_SIGN_IN
         });
+        
+        try {
+          const tokenResponse = await axios.post(tokenEndpoint, tokenData, {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          });
         
         const idToken = tokenResponse.data.id_token;
         const accessToken = tokenResponse.data.access_token;
@@ -84,6 +97,10 @@ const AuthCallback = () => {
 
         // Redirect to the main application
         navigate('/tasks');
+        } catch (tokenError) {
+          console.error('Token exchange error:', tokenError.response?.data || tokenError.message);
+          throw new Error(`Token exchange failed: ${tokenError.response?.data?.error || tokenError.message}`);
+        }
       } catch (err) {
         console.error('Authentication error:', err);
         setError(err.message || 'Failed to authenticate');

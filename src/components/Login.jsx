@@ -28,10 +28,16 @@ const Login = () => {
 
   // Function to manually trigger the redirect
   const handleLoginClick = () => {
-    // Generate state parameter to prevent CSRF attacks
+    // Clear any existing session storage first
+    sessionStorage.clear();
+    
+    // Generate a fresh state parameter
     const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    console.log('Generated state:', state);
+    
     // Save the state in session storage
     sessionStorage.setItem('oauth_state', state);
+    
     // Redirect to Cognito login
     redirectToCognitoLogin(state);
   };
@@ -46,6 +52,13 @@ const Login = () => {
     authorizationUrl.searchParams.append('scope', cognitoConfig.getScopes());
     authorizationUrl.searchParams.append('state', state);
 
+    console.log('Redirecting to:', authorizationUrl.toString());
+    console.log('State parameter:', state);
+    
+    // Check that state is in sessionStorage before redirecting
+    const storedState = sessionStorage.getItem('oauth_state');
+    console.log('Stored state before redirect:', storedState);
+    
     window.location.href = authorizationUrl.toString();
   };
 

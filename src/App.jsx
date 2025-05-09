@@ -21,6 +21,7 @@ import SignOut from "./components/SignOut";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getCookie, removeCookie, isTokenValid } from "./utils/cookieUtils";
 import { cognitoConfig } from "./config/auth";
+import SessionDebug from "./components/SessionDebug";
 import {
   FaTasks,
   FaPlus,
@@ -256,6 +257,7 @@ function AppLayout({ isAuthenticated, handleLogin, handleLogout }) {
       </main>
 
       <Footer />
+      <SessionDebug />
     </div>
   );
 }
