@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import CreateTask from './pages/CreateTask';
 import UpdateTask from './pages/UpdateTask';
 import TaskList from './pages/TaskList';
 import ViewTask from './pages/ViewTask';
+import { FaTasks, FaPlus, FaList, FaHome } from 'react-icons/fa';
 
 const API_BASE = 'https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com';
 
@@ -94,14 +95,50 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <h1 className="text-3xl font-bold">Task Manager</h1>
-        <Routes>
-          <Route path="/create" element={<CreateTask />} />
-          <Route path="/update" element={<UpdateTask />} />
-          <Route path="/tasks" element={<TaskList />} />
-          <Route path="/view" element={<ViewTask />} />
-        </Routes>
+      <div className="min-h-screen bg-gray-100">
+        <nav className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex-shrink-0 flex items-center">
+                <FaTasks className="h-8 w-8 mr-2" />
+                <span className="text-xl font-bold">Task Manager</span>
+              </div>
+              <div className="flex space-x-4">
+                <Link to="/" className="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white transition-colors">
+                  <FaHome className="mr-1" /> Home
+                </Link>
+                <Link to="/tasks" className="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white transition-colors">
+                  <FaList className="mr-1" /> Tasks
+                </Link>
+                <Link to="/create" className="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white transition-colors">
+                  <FaPlus className="mr-1" /> New Task
+                </Link>
+              </div>
+            </div>
+          </div>
+        </nav>
+        
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="bg-white rounded-lg shadow p-6">
+              <Routes>
+                <Route path="/" element={<Navigate to="/tasks" replace />} />
+                <Route path="/create" element={<CreateTask />} />
+                <Route path="/update/:taskId" element={<UpdateTask />} />
+                <Route path="/tasks" element={<TaskList />} />
+                <Route path="/view/:taskId" element={<ViewTask />} />
+              </Routes>
+            </div>
+          </div>
+        </main>
+        
+        <footer className="bg-white shadow-inner mt-auto">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <p className="text-center text-sm text-gray-500">
+              © {new Date().getFullYear()} Task Management System. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </div>
     </Router>
   );
