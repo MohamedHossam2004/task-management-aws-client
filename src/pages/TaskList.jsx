@@ -12,18 +12,14 @@ import {
   FaPlus,
   FaSearch,
   FaFilter,
-  FaStar,
-  FaBell,
-  FaCalendarAlt,
-  FaTags,
-  FaUser,
   FaExclamationTriangle,
+  FaCalendarAlt,
   FaTasks,
+  FaUser,
 } from "react-icons/fa";
 import { getCookie } from "../utils/cookieUtils";
-import api from "../utils/apiUtils";
 
-const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
@@ -32,33 +28,42 @@ const TaskList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
+        setError(null);
         const token = getCookie('access_token');
-        
+
         if (!token) {
-          console.error("No access token found");
+          setError("Authentication required. Please sign in.");
+          setLoading(false);
           return;
         }
-        
+
         const res = await fetch(`${API_BASE}/tasks`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch tasks: ${res.statusText}`);
+        }
+
         const data = await res.json();
         setTasks(data);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
+        setError(error.message || "Failed to load tasks");
       } finally {
         setLoading(false);
       }
     };
+
     fetchTasks();
   }, []);
 
@@ -66,17 +71,27 @@ const TaskList = () => {
     if (confirm('Are you sure you want to delete this task?')) {
       try {
         const token = getCookie('access_token');
-        
-        await fetch(`${API_BASE}/tasks/${id}`, { 
+
+        if (!token) {
+          setError("Authentication required. Please sign in.");
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
+        if (!res.ok) {
+          throw new Error(`Failed to delete task: ${res.statusText}`);
+        }
+
         setTasks(tasks.filter(task => task.taskId !== id));
       } catch (error) {
         console.error("Failed to delete task:", error);
+        setError(error.message || "Failed to delete task");
       }
     }
   };
@@ -118,14 +133,14 @@ const TaskList = () => {
   const filteredTasks = tasks
     .filter((task) => filter === "all" || task.status === filter)
     .filter(
-      (task) => priorityFilter === "all" || task.priority === priorityFilter,
+      (task) => priorityFilter === "all" || task.priority === priorityFilter
     )
     .filter(
       (task) =>
         searchTerm === "" ||
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (task.description &&
-          task.description.toLowerCase().includes(searchTerm.toLowerCase())),
+          task.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
   return (
@@ -140,7 +155,7 @@ const TaskList = () => {
           </h2>
           <p className="text-gray-500 mt-1">Manage your tasks efficiently</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/create')}
           className="flex items-center bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-5 py-2 rounded-md shadow-md transition-all hover:shadow-lg transform hover:-translate-y-1 w-full md:w-auto justify-center"
           disabled={!getCookie('access_token')}
@@ -174,7 +189,7 @@ const TaskList = () => {
             </button>
 
             <button
-              onClick={() => navigate("/create")}
+              onClick={() => navigate('/create')}
               className="flex items-center bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-4 py-2 rounded-md shadow transition-all hover:shadow-lg md:hidden"
             >
               <FaPlus className="mr-2" /> Add
@@ -251,13 +266,30 @@ const TaskList = () => {
         )}
       </div>
 
-      {/* Status filters moved to the filter panel */}
-
       {loading ? (
         <div className="flex justify-center items-center py-10">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <FaSpinner className="animate-spin text-teal-600 text-4xl mx-auto mb-4" />
             <p className="text-gray-600">Loading your tasks...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FaExclamationTriangle className="h-5 w-5 text-red-500" />
+            </div>
+            <div className="ml-3">
+              <p className="text-red-700">{error}</p>
+              <div className="mt-4">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : filteredTasks.length > 0 ? (
@@ -332,30 +364,16 @@ const TaskList = () => {
           ))}
         </div>
       ) : (
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded my-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <FaExclamationTriangle className="h-5 w-5 text-red-500" />
-              </div>
-              <div className="ml-3">
-                <p className="text-red-700">{error}</p>
-              </div>
-            </div>
+        <div className="bg-white rounded-lg shadow-lg p-10 text-center border border-dashed border-gray-300">
+          <div className="bg-teal-100 inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
+            <FaTasks className="text-3xl text-teal-600" />
           </div>
-        )}
-      
-        {!error && filteredTasks.length === 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-10 text-center border border-dashed border-gray-300">
-            <div className="bg-teal-100 inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
-              <FaTasks className="text-3xl text-teal-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No tasks found
-            </h3>
-            <p className="text-gray-500 mb-6">
-              No tasks match your current filter criteria
-            </p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            No tasks found
+          </h3>
+          <p className="text-gray-500 mb-6">
+            No tasks match your current filter criteria
+          </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => {
@@ -368,7 +386,7 @@ const TaskList = () => {
               <FaFilter className="mr-2" /> Clear filters
             </button>
             <button
-              onClick={() => navigate("/create")}
+              onClick={() => navigate('/create')}
               className="inline-flex items-center justify-center bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-4 py-2 rounded-md shadow-md transition-all hover:shadow-lg"
             >
               <FaPlus className="mr-2" /> Create your first task

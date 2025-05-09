@@ -79,7 +79,7 @@ const AuthCallback = () => {
           maxAge: cognitoConfig.REFRESH_TOKEN_EXPIRY
         });
 
-        // Set the authentication state
+        // Set authentication state in localStorage for UI purposes
         localStorage.setItem('isAuthenticated', 'true');
 
         // Redirect to the main application
