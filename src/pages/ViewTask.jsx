@@ -61,10 +61,37 @@ const ViewTask = () => {
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this task?')) {
       try {
-        await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
+        // It might be good to set a submitting/loading state here if you have one
+        // e.g., setDeleting(true); setError(null);
+        const token = getCookie('access_token');
+        const headers = {};
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          // Handle missing token, e.g., show error or redirect to login
+          console.error("Authentication token not found for delete operation.");
+          // setError("Authentication required to delete task."); // If you have an error state
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: headers,
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to delete task: ${res.status}`);
+        }
+        
+        // If successful, navigate away
         navigate('/tasks');
       } catch (error) {
         console.error("Failed to delete task:", error);
+        // setError(error.message || "An error occurred while deleting the task."); // If you have an error state
+      } finally {
+        // e.g., setDeleting(false);
       }
     }
   };
