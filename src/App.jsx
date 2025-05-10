@@ -7,6 +7,7 @@ import {
   Link,
   Navigate,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import CreateTask from "./pages/CreateTask";
 import UpdateTask from "./pages/UpdateTask";
@@ -15,6 +16,13 @@ import ViewTask from "./pages/ViewTask";
 import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
 import UserProfile from "./pages/UserProfile";
+import AuthCallback from "./components/AuthCallback";
+import Login from "./components/Login";
+import SignOut from "./components/SignOut";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { getCookie, removeCookie, isTokenValid } from "./utils/cookieUtils";
+import { cognitoConfig } from "./config/auth";
+import SessionDebug from "./components/SessionDebug";
 import {
   FaTasks,
   FaPlus,
@@ -30,7 +38,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
-const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -46,7 +54,10 @@ function App() {
   const [taskIdToUpdate, setTaskIdToUpdate] = useState("");
   const [taskIdToView, setTaskIdToView] = useState("");
   const [viewedTask, setViewedTask] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = getCookie('access_token');
+    return token ? isTokenValid(token) : false;
+  });
   const [userInfo, setUserInfo] = useState({
     firstName: "",
     lastName: "",
@@ -55,10 +66,49 @@ function App() {
   });
 
   useEffect(() => {
-    fetch(`${API_BASE}/tasks`)
-      .then((res) => res.json())
-      .then(setTasks)
-      .catch(console.error);
+    // Check if user is authenticated before fetching tasks
+    const token = getCookie('access_token');
+    if (token && isTokenValid(token)) {
+      setIsAuthenticated(true);
+      
+      // Fetch user tasks using the token
+      fetch(`${API_BASE}/tasks`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(setTasks)
+        .catch(error => {
+          console.error("Error fetching tasks:", error);
+          // If we get a 401, token might be invalid despite passing isTokenValid
+          if (error.message.includes('401')) {
+            removeCookie('access_token');
+            setIsAuthenticated(false);
+          }
+        });
+        
+      // Extract user info from ID token if available
+      const idToken = getCookie('id_token');
+      if (idToken) {
+        try {
+          const payload = JSON.parse(atob(idToken.split('.')[1]));
+          setUserInfo({
+            firstName: payload.given_name || '',
+            lastName: payload.family_name || '',
+            email: payload.email || '',
+            phone: payload.phone_number || ''
+          });
+        } catch (err) {
+          console.error("Error parsing ID token:", err);
+        }
+      }
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -125,13 +175,24 @@ function App() {
       reader.onload = () => resolve(reader.result.split(",")[1]);
       reader.onerror = (error) => reject(error);
     });
-    
+
   const handleLogin = () => {
-    // Redirect to Cognito login page
-    window.location.href = "https://your-cognito-domain.auth.region.amazoncognito.com/login?client_id=your-client-id&response_type=code&redirect_uri=your-redirect-uri";
+    // Redirect to Login page which will handle Cognito authentication
+    window.location.href = "/login";
   };
 
   const handleLogout = () => {
+    // Clear cookies with correct domain and path from config
+    const cookieOptions = {
+      path: cognitoConfig.COOKIE_PATH,
+      domain: cognitoConfig.COOKIE_DOMAIN
+    };
+    
+    removeCookie('access_token', cookieOptions);
+    removeCookie('id_token', cookieOptions);
+    removeCookie('refresh_token', cookieOptions);
+
+    // Reset state
     setIsAuthenticated(false);
     setUserInfo({
       firstName: "",
@@ -139,58 +200,73 @@ function App() {
       email: "",
       phone: "",
     });
-    // Redirect to Cognito logout page
-    window.location.href = "https://your-cognito-domain.auth.region.amazoncognito.com/logout?client_id=your-client-id&logout_uri=your-logout-uri";
+
+    // Navigate to signout page
+    window.location.href = "/signout";
   };
 
   return (
     <Router>
-      <AppLayout 
-        isAuthenticated={isAuthenticated}
-        handleLogin={handleLogin}
-        handleLogout={handleLogout}
-      >
-        <Routes>
-          <Route path="/" element={<Navigate to="/tasks" replace />} />
-          <Route path="/create" element={<CreateTask />} />
-          <Route path="/update/:taskId" element={<UpdateTask />} />
-          <Route path="/tasks" element={<TaskList />} />
-          <Route path="/view/:taskId" element={<ViewTask />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/profile" element={<UserProfile />} />
-        </Routes>
-      </AppLayout>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/callback" element={<AuthCallback />} />
+        <Route path="/signout" element={<SignOut />} />
+
+        <Route path="/" element={<Navigate to="/tasks" replace />} />
+
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={
+            <AppLayout
+              isAuthenticated={isAuthenticated}
+              handleLogin={handleLogin}
+              handleLogout={handleLogout}
+            />
+          }>
+            <Route path="/create" element={<CreateTask />} />
+            <Route path="/update/:taskId" element={<UpdateTask />} />
+            <Route path="/tasks" element={<TaskList />} />
+            <Route path="/view/:taskId" element={<ViewTask />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/profile" element={<UserProfile />} />
+          </Route>
+        </Route>
+      </Routes>
     </Router>
   );
 }
 
-function AppLayout({ isAuthenticated, handleLogin, handleLogout, children }) {
+function AppLayout({ isAuthenticated, handleLogin, handleLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      <NavBar 
+      <NavBar
         isAuthenticated={isAuthenticated}
         handleLogin={handleLogin}
         handleLogout={handleLogout}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />
-      
+
       <main className="w-full py-6 px-4 sm:px-6 lg:px-8 flex-grow">
         <div className="py-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
-            {children}
+            <Outlet />
           </div>
         </div>
       </main>
-      
+
       <Footer />
+      <SessionDebug />
     </div>
   );
 }
 
 function NavBar({ isAuthenticated, handleLogin, handleLogout, mobileMenuOpen, setMobileMenuOpen }) {
+  // Get authentication status from cookie and verify token validity
+  const token = getCookie('access_token');
+  const authenticated = isAuthenticated || (token && isTokenValid(token));
   return (
     <nav className="bg-gradient-to-r from-teal-800 to-blue-800 text-white shadow-lg">
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -201,15 +277,15 @@ function NavBar({ isAuthenticated, handleLogin, handleLogout, mobileMenuOpen, se
             </div>
             <span className="text-xl font-bold">Task Manager</span>
           </div>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-2">
             <NavLinks />
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <NavLink 
-              to="/profile" 
+            <NavLink
+              to="/profile"
               className="p-2 rounded-md focus:outline-none"
               activeClassName="bg-white text-teal-800"
               inactiveClassName="text-white bg-white bg-opacity-20 hover:bg-white hover:text-teal-700"
@@ -217,13 +293,13 @@ function NavBar({ isAuthenticated, handleLogin, handleLogout, mobileMenuOpen, se
             >
               <FaCog className="h-5 w-5" />
             </NavLink>
-            {isAuthenticated ? (
+            {authenticated ? (
               <div className="flex items-center space-x-2">
                 <div className="bg-white p-1 rounded-full">
                   <FaUser className="h-6 w-6 text-teal-800" />
                 </div>
-                <button 
-                  onClick={handleLogout} 
+                <button
+                  onClick={handleLogout}
                   className="hidden sm:flex text-white hover:bg-white hover:text-red-700 focus:outline-none items-center text-xs bg-red-500 bg-opacity-30 px-2 py-1 rounded"
                   title="Sign out"
                 >
@@ -231,15 +307,15 @@ function NavBar({ isAuthenticated, handleLogin, handleLogout, mobileMenuOpen, se
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={handleLogin} 
+              <button
+                onClick={handleLogin}
                 className="hidden sm:flex text-white hover:bg-white hover:text-green-700 focus:outline-none items-center text-xs bg-green-500 bg-opacity-30 px-2 py-1 rounded"
                 title="Sign in"
               >
                 <FaSignInAlt className="h-4 w-4 mr-1" /> Sign In
               </button>
             )}
-            
+
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -263,22 +339,22 @@ function NavBar({ isAuthenticated, handleLogin, handleLogout, mobileMenuOpen, se
             </button>
           </div>
         </div>
-        
+
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-teal-900 mt-2 py-3 px-2 rounded-md shadow-lg">
             <div className="space-y-1">
               <MobileNavLinks setMobileMenuOpen={setMobileMenuOpen} />
-              
-              {isAuthenticated ? (
-                <button 
+
+              {authenticated ? (
+                <button
                   onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
                   className="flex w-full items-center px-3 py-2 rounded-md text-white bg-red-700 hover:bg-white hover:text-red-700 transition-colors"
                 >
                   <FaSignOutAlt className="mr-2" /> Sign Out
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => { handleLogin(); setMobileMenuOpen(false); }}
                   className="flex w-full items-center px-3 py-2 rounded-md text-white bg-green-700 hover:bg-white hover:text-green-700 transition-colors"
                 >
@@ -337,14 +413,14 @@ function MobileNavLinks({ setMobileMenuOpen }) {
 function NavLink({ to, children, exact, className, activeClassName, inactiveClassName }) {
   const location = useLocation();
   const isActive = exact ? location.pathname === to : location.pathname.startsWith(to);
-  
+
   const baseClasses = "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors";
   const defaultActiveClasses = "bg-white text-teal-800 font-bold";
   const defaultInactiveClasses = "bg-white bg-opacity-20 text-white hover:bg-white hover:text-teal-700";
-  
+
   const finalActiveClasses = activeClassName || defaultActiveClasses;
   const finalInactiveClasses = inactiveClassName || defaultInactiveClasses;
-  
+
   return (
     <Link
       to={to}
@@ -358,13 +434,13 @@ function NavLink({ to, children, exact, className, activeClassName, inactiveClas
 function MobileNavLink({ to, children, exact, setMobileMenuOpen }) {
   const location = useLocation();
   const isActive = exact ? location.pathname === to : location.pathname.startsWith(to);
-  
+
   return (
     <Link
       to={to}
       className={`flex items-center px-3 py-2 rounded-md transition-colors ${
-        isActive 
-          ? 'bg-white text-teal-800 font-bold' 
+        isActive
+          ? 'bg-white text-teal-800 font-bold'
           : 'text-white bg-teal-800 hover:bg-white hover:text-teal-800'
       }`}
       onClick={() => setMobileMenuOpen(false)}

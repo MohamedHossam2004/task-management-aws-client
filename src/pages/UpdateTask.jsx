@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getCookie } from '../utils/cookieUtils'; // Import getCookie
 import {
   FaUser,
   FaFileAlt,
@@ -36,8 +37,21 @@ const UpdateTask = () => {
     const fetchTask = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks/${taskId}`);
-        if (!res.ok) throw new Error('Failed to fetch task');
+        setError(''); // Clear previous errors
+        const token = getCookie('access_token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { headers });
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to fetch task: ${res.statusText}`);
+        }
         const data = await res.json();
         
         // Format date to YYYY-MM-DD for input field
@@ -87,17 +101,34 @@ const UpdateTask = () => {
         delete payload.file;
       }
 
+      const token = getCookie('access_token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(payload)
       });
       
-      if (!res.ok) throw new Error('Failed to update task');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(errorData.message || `Failed to update task: ${res.statusText}`);
+      }
       
-      await res.json();
+      // Assuming the response might contain the updated task or a success message
+      // If the backend sends back the updated task, you might want to use it.
+      // For now, just parsing JSON if it exists.
+      try {
+        await res.json(); 
+      } catch (e) {
+        // Handle cases where response might not be JSON (e.g., 204 No Content)
+        console.log("Update response was not JSON or empty:", e)
+      }
       navigate('/tasks');
     } catch (err) {
       setError(err.message || 'Failed to update task');
@@ -116,7 +147,24 @@ const UpdateTask = () => {
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this task?')) {
       try {
-        await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
+        setSubmitting(true); // Indicate loading state
+        setError(''); // Clear previous errors
+        const token = getCookie('access_token');
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { 
+          method: 'DELETE',
+          headers: headers 
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to delete task: ${res.statusText}`);
+        }
+        
         navigate('/tasks');
       } catch (error) {
         console.error("Failed to delete task:", error);

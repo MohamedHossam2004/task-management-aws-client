@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { getCookie } from "../utils/cookieUtils"; // Import getCookie
 import {
   FaUser,
   FaFileAlt,
@@ -19,7 +20,6 @@ const CreateTask = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [form, setForm] = useState({
-    userId: "",
     title: "",
     description: "",
     status: "pending",
@@ -34,11 +34,33 @@ const CreateTask = () => {
   }
 
   const handleCreate = async () => {
-    try {
-      setIsSubmitting(true)
-      setError("")
+    setError(""); // Clear previous errors first
+    setIsSubmitting(true);
 
-      const file = form.file
+    // Client-side validation for required fields
+    const requiredFieldsDefinition = {
+      title: "Title",
+      description: "Description",
+      status: "Status",
+      priority: "Priority",
+      due_date: "Due Date",
+    };
+
+    const missing = [];
+    for (const fieldName in requiredFieldsDefinition) {
+      if (!form[fieldName] || (typeof form[fieldName] === 'string' && form[fieldName].trim() === "")) {
+        missing.push(requiredFieldsDefinition[fieldName]);
+      }
+    }
+
+    if (missing.length > 0) {
+      setError(`Please fill in all required fields: ${missing.join(", ")}.`);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const file = form.file;
       const fileData = file
         ? {
             name: file.name,
@@ -51,11 +73,17 @@ const CreateTask = () => {
 
       // Replace with your actual API endpoint
       const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com"
+      const token = getCookie('access_token');
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(`${API_BASE}/tasks`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: headers,
         body: JSON.stringify(payload),
       })
 
@@ -108,21 +136,6 @@ const CreateTask = () => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="userId" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <FaUser className="h-4 w-4 text-gray-500" />
-                User ID
-              </label>
-              <input
-                id="userId"
-                name="userId"
-                placeholder="Enter user ID"
-                value={form.userId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="title" className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <FaFileAlt className="h-4 w-4 text-gray-500" />
                 Title
@@ -134,6 +147,7 @@ const CreateTask = () => {
                 value={form.title}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                required
               />
             </div>
 
@@ -149,6 +163,7 @@ const CreateTask = () => {
                 value={form.description}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent min-h-[100px]"
+                required
               />
             </div>
 
@@ -208,6 +223,7 @@ const CreateTask = () => {
                 value={form.due_date}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                required
               />
             </div>
 

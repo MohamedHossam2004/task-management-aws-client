@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaSpinner, FaChevronLeft, FaChevronRight, FaPlus, FaExclamationCircle, FaClock } from 'react-icons/fa';
+import { getCookie } from '../utils/cookieUtils'; // Import getCookie
 
 const API_BASE = 'https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com';
 
@@ -15,14 +16,31 @@ const Calendar = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks`);
+        setError(null); // Clear previous errors
+        const token = getCookie('access_token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          setError("Authentication required. Please sign in.");
+          setLoading(false);
+          setTasks([]); // Clear tasks if not authenticated
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks`, { headers });
         if (!res.ok) {
-          throw new Error('Failed to fetch tasks');
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to fetch tasks: ${res.statusText}`);
         }
         const data = await res.json();
         setTasks(data);
       } catch (err) {
-        setError(err.message);
+        console.error("Failed to fetch tasks for calendar:", err);
+        setError(err.message || "Failed to load tasks");
+        setTasks([]); // Clear tasks on error
       } finally {
         setLoading(false);
       }

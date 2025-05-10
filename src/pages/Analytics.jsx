@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaChartBar, FaCalendarAlt, FaCheckCircle, FaHourglass, FaSpinner, FaClock, FaExclamationTriangle, FaFlag } from 'react-icons/fa';
+import { getCookie } from '../utils/cookieUtils'; // Import getCookie
 
 const API_BASE = 'https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com';
 
@@ -24,9 +25,29 @@ const Analytics = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks`);
+        setError(null); // Clear previous errors
+        const token = getCookie('access_token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          setError("Authentication required. Please sign in.");
+          setLoading(false);
+          setTasks([]); // Clear tasks if not authenticated
+          setStats({ // Reset stats
+            total: 0, completed: 0, inProgress: 0, pending: 0,
+            highPriority: 0, mediumPriority: 0, lowPriority: 0,
+            overdue: 0, dueToday: 0, dueSoon: 0
+          });
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks`, { headers });
         if (!res.ok) {
-          throw new Error('Failed to fetch tasks');
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to fetch tasks: ${res.statusText}`);
         }
         const data = await res.json();
         setTasks(data);
@@ -67,7 +88,14 @@ const Analytics = () => {
         
         setStats(newStats);
       } catch (err) {
-        setError(err.message);
+        console.error("Failed to fetch tasks for analytics:", err);
+        setError(err.message || "Failed to load tasks");
+        setTasks([]); // Clear tasks on error
+        setStats({ // Reset stats on error
+          total: 0, completed: 0, inProgress: 0, pending: 0,
+          highPriority: 0, mediumPriority: 0, lowPriority: 0,
+          overdue: 0, dueToday: 0, dueSoon: 0
+        });
       } finally {
         setLoading(false);
       }

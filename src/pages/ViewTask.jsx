@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getCookie } from '../utils/cookieUtils'; // Import getCookie
 import { 
   FaUser, 
   FaCalendarAlt, 
@@ -27,7 +28,25 @@ const ViewTask = () => {
     const fetchTask = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks/${taskId}`);
+        const token = getCookie('access_token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { headers });
+        
+        if (!res.ok) {
+          // Handle non-OK responses (e.g., 401, 403, 404)
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          console.error("Failed to fetch task, status:", res.status, "Error:", errorData);
+          // Optionally, set an error state to display to the user
+          setTask(null); // Clear task data if fetch fails
+          throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
         setTask(data);
       } catch (error) {
@@ -42,10 +61,37 @@ const ViewTask = () => {
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this task?')) {
       try {
-        await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
+        // It might be good to set a submitting/loading state here if you have one
+        // e.g., setDeleting(true); setError(null);
+        const token = getCookie('access_token');
+        const headers = {};
+
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          // Handle missing token, e.g., show error or redirect to login
+          console.error("Authentication token not found for delete operation.");
+          // setError("Authentication required to delete task."); // If you have an error state
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: headers,
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(errorData.message || `Failed to delete task: ${res.status}`);
+        }
+        
+        // If successful, navigate away
         navigate('/tasks');
       } catch (error) {
         console.error("Failed to delete task:", error);
+        // setError(error.message || "An error occurred while deleting the task."); // If you have an error state
+      } finally {
+        // e.g., setDeleting(false);
       }
     }
   };
@@ -171,7 +217,7 @@ const ViewTask = () => {
                     <p className="text-gray-700 truncate">{task.file_name || "File"}</p>
                   </div>
                   <a 
-                    href={task.file_url} 
+                    href={task.signed_file_url || task.file_url} 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center p-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition-colors"
