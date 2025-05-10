@@ -17,7 +17,7 @@ export const cognitoConfig = {
   RESPONSE_TYPE: "code", // Using authorization code grant flow
 
   // OAuth scopes requested
-  SCOPE: ["email", "openid", "profile"],
+  SCOPE: ["email", "openid", "profile", "aws.cognito.signin.user.admin"],
 
   // Cookie configuration
   COOKIE_SECURE: import.meta.env.VITE_COOKIE_SECURE !== "false",
