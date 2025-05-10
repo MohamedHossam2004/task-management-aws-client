@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getCookie } from '../utils/cookieUtils'; // Import getCookie
 import { 
   FaUser, 
   FaCalendarAlt, 
@@ -27,7 +28,25 @@ const ViewTask = () => {
     const fetchTask = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/tasks/${taskId}`);
+        const token = getCookie('access_token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { headers });
+        
+        if (!res.ok) {
+          // Handle non-OK responses (e.g., 401, 403, 404)
+          const errorData = await res.json().catch(() => ({ message: res.statusText }));
+          console.error("Failed to fetch task, status:", res.status, "Error:", errorData);
+          // Optionally, set an error state to display to the user
+          setTask(null); // Clear task data if fetch fails
+          throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
         setTask(data);
       } catch (error) {
