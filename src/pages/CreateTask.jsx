@@ -34,11 +34,33 @@ const CreateTask = () => {
   }
 
   const handleCreate = async () => {
-    try {
-      setIsSubmitting(true)
-      setError("")
+    setError(""); // Clear previous errors first
+    setIsSubmitting(true);
 
-      const file = form.file
+    // Client-side validation for required fields
+    const requiredFieldsDefinition = {
+      title: "Title",
+      description: "Description",
+      status: "Status",
+      priority: "Priority",
+      due_date: "Due Date",
+    };
+
+    const missing = [];
+    for (const fieldName in requiredFieldsDefinition) {
+      if (!form[fieldName] || (typeof form[fieldName] === 'string' && form[fieldName].trim() === "")) {
+        missing.push(requiredFieldsDefinition[fieldName]);
+      }
+    }
+
+    if (missing.length > 0) {
+      setError(`Please fill in all required fields: ${missing.join(", ")}.`);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const file = form.file;
       const fileData = file
         ? {
             name: file.name,
@@ -125,6 +147,7 @@ const CreateTask = () => {
                 value={form.title}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                required
               />
             </div>
 
@@ -140,6 +163,7 @@ const CreateTask = () => {
                 value={form.description}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent min-h-[100px]"
+                required
               />
             </div>
 
@@ -199,6 +223,7 @@ const CreateTask = () => {
                 value={form.due_date}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                required
               />
             </div>
 
