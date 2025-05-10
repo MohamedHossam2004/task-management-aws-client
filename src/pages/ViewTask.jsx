@@ -171,7 +171,7 @@ const ViewTask = () => {
                     <p className="text-gray-700 truncate">{task.file_name || "File"}</p>
                   </div>
                   <a 
-                    href={task.file_url} 
+                    href={task.signed_file_url || task.file_url} 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center p-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition-colors"
