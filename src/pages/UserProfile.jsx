@@ -1,23 +1,71 @@
-import React, { useState } from 'react';
-import { FaUser, FaEnvelope, FaPhone, FaSave, FaSignOutAlt, FaUserEdit } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaUser, FaEnvelope, FaPhone, FaSave, FaSignOutAlt, FaUserEdit, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+// Assuming cookie utils are here
+import { useNavigate } from 'react-router-dom'; // For redirecting
+import { removeCookie, getCookie } from '../utils/cookieUtils'; // Import removeCookie and getCookie
+import { cognitoConfig } from '../config/auth'; // Import cognitoConfig
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL; // Assuming API_BASE is in .env
 
 const UserProfile = () => {
-  // This would normally come from your authentication system
-  const [user, setUser] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '555-123-4567',
-    isLoggedIn: true,
-  });
-
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
+    firstname: '', // RDS uses lowercase
+    lastname: '',  // RDS uses lowercase
+    email: '',
+    phonenumber: '', // RDS uses lowercase
   });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      setLoading(true);
+      setError(null);
+      const token = getCookie('access_token');
+
+      if (!token) {
+        setError('You are not logged in. Please sign in to view your profile.');
+        setLoading(false);
+        setUser(null); // Ensure user state is cleared
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+          throw new Error(errorData.message || `Failed to fetch profile: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setUser(data);
+        // Initialize formData with fetched data (use lowercase keys from RDS)
+        setFormData({
+          firstname: data.firstname || '',
+          lastname: data.lastname || '',
+          email: data.email || '',
+          phonenumber: data.phonenumber || '',
+        });
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+        setError(err.message || 'Failed to load profile.');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,33 +75,49 @@ const UserProfile = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // This would normally send the data to your backend
-    setUser({
-      ...user,
-      ...formData,
-    });
+    // For now, just updating local state as an example
+    setUser(prevUser => ({
+      ...prevUser, // Keep existing cognito_sub, createdat, updatedat etc.
+      firstname: formData.firstname,
+      lastname: formData.lastname,
+      email: formData.email,
+      phonenumber: formData.phonenumber,
+    }));
     setIsEditing(false);
     // Simulating success message
-    alert('Profile updated successfully!');
+    alert('Profile update simulated successfully! (Frontend only)');
+    // TODO: Implement backend call to update profile in RDS/Cognito if needed
   };
 
   const handleLogout = () => {
-    // This would normally handle the logout process
-    setUser({
-      ...user,
-      isLoggedIn: false,
-    });
-    // Redirect to login page or home page
-    window.location.href = '/';
+    // Clear cookies
+    removeCookie('access_token');
+    removeCookie('id_token');
+    removeCookie('refresh_token');
+    localStorage.removeItem('isAuthenticated');
+    setUser(null);
+    
+    // Redirect to Cognito's logout endpoint
+    const logoutUrl = cognitoConfig.getLogoutUrl();
+    window.location.href = logoutUrl; 
+    // We use window.location.href for external redirects, 
+    // navigate is for internal SPA routing.
   };
 
-  const loginWithCognito = () => {
-    // Redirect to Cognito login
-    alert('Redirecting to login...');
-    // This would normally redirect to your Cognito hosted UI
-    // window.location.href = 'YOUR_COGNITO_HOSTED_UI_URL';
+  const redirectToLogin = () => {
+    navigate('/login');
   };
 
-  if (!user.isLoggedIn) {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8 h-[80vh]">
+        <FaSpinner className="animate-spin text-teal-600 text-4xl" />
+        <p className="ml-3 text-gray-700">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (error || !user) { // If error or user is null after loading
     return (
       <div className="flex flex-col items-center justify-center p-8 h-[80vh]">
         <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
@@ -95,7 +159,7 @@ const UserProfile = () => {
               <FaUser className="text-teal-600 text-5xl" />
             </div>
             <h2 className="text-2xl font-bold text-white">
-              {user.firstName} {user.lastName}
+              {user.firstname} {user.lastname}
             </h2>
             <p className="text-teal-100 mt-1">{user.email}</p>
           </div>
@@ -116,8 +180,8 @@ const UserProfile = () => {
                     <input
                       type="text"
                       id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
+                      name="firstname"
+                      value={formData.firstname}
                       onChange={handleChange}
                       className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
                       required
@@ -135,8 +199,8 @@ const UserProfile = () => {
                     <input
                       type="text"
                       id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
+                      name="lastname"
+                      value={formData.lastname}
                       onChange={handleChange}
                       className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
                       required
@@ -173,8 +237,8 @@ const UserProfile = () => {
                     <input
                       type="tel"
                       id="phone"
-                      name="phone"
-                      value={formData.phone}
+                      name="phonenumber"
+                      value={formData.phonenumber}
                       onChange={handleChange}
                       className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
                     />
@@ -201,29 +265,29 @@ const UserProfile = () => {
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 mb-1">First Name</p>
-                  <p className="text-lg font-semibold text-gray-800">{user.firstName}</p>
+                  <p className="text-sm font-medium text-gray-500 mb-1\">First Name</p>
+                  <p className="text-lg font-semibold text-gray-800">{user.firstname || 'N/A'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Last Name</p>
-                  <p className="text-lg font-semibold text-gray-800">{user.lastName}</p>
+                  <p className="text-sm font-medium text-gray-500 mb-1\">Last Name</p>
+                  <p className="text-lg font-semibold text-gray-800">{user.lastname || 'N/A'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Email Address</p>
+                  <p className="text-sm font-medium text-gray-500 mb-1\">Email Address</p>
                   <div className="flex items-center">
                     <FaEnvelope className="text-teal-600 mr-2" />
-                    <p className="text-lg font-semibold text-gray-800">{user.email}</p>
+                    <p className="text-lg font-semibold text-gray-800">{user.email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-500 mb-1">Phone Number</p>
+                  <p className="text-sm font-medium text-gray-500 mb-1\">Phone Number</p>
                   <div className="flex items-center">
                     <FaPhone className="text-teal-600 mr-2" />
-                    <p className="text-lg font-semibold text-gray-800">{user.phone || 'Not provided'}</p>
+                    <p className="text-lg font-semibold text-gray-800">{user.phonenumber || 'Not provided'}</p>
                   </div>
                 </div>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setIsEditing(true)}
                   className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors flex items-center"
