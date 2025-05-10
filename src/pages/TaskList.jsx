@@ -329,10 +329,7 @@ const TaskList = () => {
                     <div className="mr-2">
                       {getPriorityBadge(task.priority)}
                     </div>
-                    <div className="flex items-center text-xs bg-gray-100 px-2 py-1 rounded-full">
-                      <FaUser className="text-gray-500 mr-1" />
-                      <span>{task.userId || "Anonymous"}</span>
-                    </div>
+
                   </div>
 
                   <div className="flex space-x-1">
