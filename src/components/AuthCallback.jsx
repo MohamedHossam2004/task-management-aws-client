@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { setCookie } from '../utils/cookieUtils';
 import axios from 'axios';
@@ -9,8 +9,14 @@ const AuthCallback = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const hasHandledCallback = useRef(false);
 
   useEffect(() => {
+    if (hasHandledCallback.current) {
+      return;
+    }
+    hasHandledCallback.current = true;
+
     const handleCallback = async () => {
       try {
         // Extract the authorization code from URL
