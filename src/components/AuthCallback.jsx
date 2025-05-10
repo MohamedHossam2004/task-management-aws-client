@@ -101,6 +101,7 @@ const AuthCallback = () => {
         // Set authentication state in localStorage for UI purposes
         localStorage.setItem('isAuthenticated', 'true');
 
+        console.log('Authentication successful, attempting to navigate to /tasks');
         // Redirect to the main application
         navigate('/tasks');
         } catch (tokenError) {
