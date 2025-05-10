@@ -7,6 +7,7 @@ import {
   Link,
   Navigate,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import CreateTask from "./pages/CreateTask";
 import UpdateTask from "./pages/UpdateTask";
