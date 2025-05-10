@@ -287,13 +287,7 @@ const UserProfile = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex justify-between mt-6">
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors flex items-center"
-                >
-                  <FaUserEdit className="mr-2" /> Edit Profile
-                </button>
+              <div className="flex justify-end mt-6"> {/* Changed to justify-end for a single button */}
                 <button
                   onClick={handleLogout}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md shadow-sm transition-colors flex items-center"
