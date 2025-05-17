@@ -88,3 +88,53 @@
       - Receiver Email is verified in SES
     - For production environment:
       - Contact AWS to configure SES to send emails to any user
+
+---
+
+## User Guide 
+#### 1. **Sign-Up and Login Process**
+
+* **Sign-Up**: If you are a new user, sign up by providing your email, phone number, and other details like name and password.
+* **Login**: Once signed up, you can log in using your credentials to access the task manager system.
+<img width="1630" alt="Screenshot 2025-05-17 at 10 41 27 PM" src="https://github.com/user-attachments/assets/b846c4cb-42e6-4bba-adc3-20f82f22b264" />
+
+---
+
+#### 2. **Creating a Task**
+
+* **Title**: Enter a clear title for your task (e.g., "Assignment 2 Cloud").
+* **Description**: Provide more details regarding the task.
+* **Status**: Choose between "Pending," "In Progress," or "Completed."
+* **Priority**: Set the priority level to low, medium, or high.
+* **Due Date**: Select the due date for the task.
+* **Attachments**: Attach relevant files to tasks to ensure all necessary resources are available (e.g., PDF, Word documents).
+<img width="1632" alt="Screenshot 2025-05-17 at 10 43 06 PM" src="https://github.com/user-attachments/assets/4970fd88-76a4-4e12-853b-7b37cd1d83c8" />
+<img width="1634" alt="Screenshot 2025-05-17 at 10 44 44 PM" src="https://github.com/user-attachments/assets/9a67e06c-7adb-4ce8-87e8-7e21b379b289" />
+
+---
+
+#### 3. **Viewing and Updating Tasks** 
+
+* **View Task**: You can view the details of a task by selecting it from the list. This shows the title, description, priority, due date, and attachment.
+* **Edit Task**: You can update any task by clicking the edit button to modify details such as priority, description, status, or due date.
+<img width="1634" alt="Screenshot 2025-05-17 at 10 45 31 PM" src="https://github.com/user-attachments/assets/07b9c5be-9899-4817-90a7-093559554cb9" />
+<img width="1641" alt="Screenshot 2025-05-17 at 10 45 40 PM" src="https://github.com/user-attachments/assets/25986900-53fb-467a-9a5b-4abcf021f265" />
+<img width="1636" alt="Screenshot 2025-05-17 at 10 46 03 PM" src="https://github.com/user-attachments/assets/e4c2ad9a-bef1-4662-9532-ccb2affccf1a" />
+<img width="1635" alt="Screenshot 2025-05-17 at 10 46 11 PM" src="https://github.com/user-attachments/assets/30c2398b-4ce8-4a0f-acce-16ab175e014a" />
+
+---
+
+#### 4. **Task Analytics**
+
+* **Analytics Page**: The analytics page gives you insights into your tasks, including their completion statuses, priorities, and deadlines. It helps track your progress over time and make informed decisions about workload distribution.
+
+<img width="1639" alt="Screenshot 2025-05-17 at 10 46 24 PM" src="https://github.com/user-attachments/assets/c7f0b77a-d147-4587-a89f-af2d7f90cbda" />
+
+---
+#### 5. **Task Calendar**
+* **Monthly View**: The calendar displays tasks for each day of the month, allowing you to easily spot upcoming deadlines.
+* **Task Assignment**: Each task with a set due date will appear on the calendar, marked clearly with its name and due date.
+* **Clickable Tasks**: Clicking on a task within the calendar will open its details, where you can view or update the task information, such as status, description, or priority.
+* **Quick Navigation**: You can navigate between months to view tasks in the upcoming weeks or months.
+   
+<img width="1636" alt="Screenshot 2025-05-17 at 10 46 17 PM" src="https://github.com/user-attachments/assets/b7b8028b-36ee-47b3-a0eb-ab0b5a23ccc3" />
