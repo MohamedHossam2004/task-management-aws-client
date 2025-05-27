@@ -25,7 +25,7 @@ export const cognitoConfig = {
   COOKIE_PATH: import.meta.env.VITE_COOKIE_PATH || "/",
 
   // Token expiration times in seconds
-  ACCESS_TOKEN_EXPIRY: 3600, // 1 hour
+  ACCESS_TOKEN_EXPIRY: 30 * 24 * 60, // 1 hour
   REFRESH_TOKEN_EXPIRY: 30 * 24 * 60 * 60, // 30 days
 
   // Convert scope array to space-separated string for Cognito
