@@ -46,7 +46,8 @@ const Analytics = () => {
         }
 
         const response = await getTasks();
-        setTasks(response.data);
+        const data = response.data;
+        setTasks(data);
         
         // Calculate statistics
         const today = new Date();

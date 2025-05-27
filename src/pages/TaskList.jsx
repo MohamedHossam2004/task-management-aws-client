@@ -4,7 +4,6 @@ import {
   FaTrash,
   FaEye,
   FaEdit,
-  FaClock,
   FaFlag,
   FaCheck,
   FaSpinner,
