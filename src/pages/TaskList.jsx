@@ -109,7 +109,7 @@ const TaskList = () => {
     );
   };
 
-  // Apply multiple filters
+  // Apply multiple filters and sort by deadline
   const filteredTasks = tasks
     .filter((task) => filter === "all" || task.status === filter)
     .filter(
@@ -121,7 +121,20 @@ const TaskList = () => {
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (task.description &&
           task.description.toLowerCase().includes(searchTerm.toLowerCase())),
-    );
+    )
+    .sort((a, b) => {
+      // Tasks with due dates come first, sorted by date
+      // Tasks without due dates come last
+      if (a.due_date && b.due_date) {
+        return new Date(a.due_date) - new Date(b.due_date);
+      } else if (a.due_date && !b.due_date) {
+        return -1;
+      } else if (!a.due_date && b.due_date) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
 
   return (
     <div className="p-4">
