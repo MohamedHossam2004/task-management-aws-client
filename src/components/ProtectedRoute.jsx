@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { getCookie, isTokenValid } from '../utils/cookieUtils';
+import { getCookie, isTokenValid, refreshTokenIfNeeded } from '../utils/cookieUtils';
 
 function ProtectedRoute() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -8,12 +8,22 @@ function ProtectedRoute() {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = () => {
+    // Check if user is authenticated and attempt token refresh if needed
+    const checkAuth = async () => {
       const accessToken = getCookie('access_token');
       
-      if (accessToken && isTokenValid(accessToken)) {
-        setIsAuthenticated(true);
+      if (accessToken) {
+        if (isTokenValid(accessToken)) {
+          setIsAuthenticated(true);
+        } else {
+          // Token is expired, try to refresh
+          const refreshSuccess = await refreshTokenIfNeeded();
+          if (refreshSuccess && isTokenValid(getCookie('access_token'))) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        }
       } else {
         setIsAuthenticated(false);
       }

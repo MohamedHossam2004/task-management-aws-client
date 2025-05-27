@@ -15,7 +15,7 @@ import {
   FaCalendarAlt,
   FaTasks,
 } from "react-icons/fa";
-import { getCookie } from "../utils/cookieUtils";
+import { getCookie, refreshTokenIfNeeded } from "../utils/cookieUtils";
 import { getTasks, deleteTask } from "../utils/apiUtils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -35,9 +35,12 @@ const TaskList = () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Check and refresh token if needed before making API call
+        const refreshSuccess = await refreshTokenIfNeeded();
         const token = getCookie("access_token");
 
-        if (!token) {
+        if (!token || !refreshSuccess) {
           setError("Authentication required. Please sign in.");
           setLoading(false);
           return;
@@ -59,9 +62,11 @@ const TaskList = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this task?")) {
       try {
+        // Check and refresh token if needed before making API call
+        const refreshSuccess = await refreshTokenIfNeeded();
         const token = getCookie("access_token");
 
-        if (!token) {
+        if (!token || !refreshSuccess) {
           setError("Authentication required. Please sign in.");
           return;
         }

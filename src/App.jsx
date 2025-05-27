@@ -20,7 +20,7 @@ import AuthCallback from "./components/AuthCallback";
 import Login from "./components/Login";
 import SignOut from "./components/SignOut";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { getCookie, removeCookie, isTokenValid } from "./utils/cookieUtils";
+import { getCookie, removeCookie, isTokenValid, refreshTokenIfNeeded } from "./utils/cookieUtils";
 import { getTasks, createTask, updateTask, deleteTask, getTask } from "./utils/apiUtils";
 import { cognitoConfig } from "./config/auth";
 import SessionDebug from "./components/SessionDebug";
@@ -67,40 +67,93 @@ function App() {
   });
 
   useEffect(() => {
-    // Check if user is authenticated before fetching tasks
-    const token = getCookie('access_token');
-    if (token && isTokenValid(token)) {
-      setIsAuthenticated(true);
+    // Initial authentication check and token refresh
+    const initializeAuth = async () => {
+      const token = getCookie('access_token');
       
-      // Fetch user tasks using the api with automatic token refresh
-      getTasks()
-        .then(response => setTasks(response.data))
-        .catch(error => {
-          console.error("Error fetching tasks:", error);
-          // If we get a 401, token might be invalid despite passing isTokenValid
-          if (error.response && error.response.status === 401) {
-            removeCookie('access_token');
-            setIsAuthenticated(false);
-          }
-        });
+      if (token) {
+        // Try to refresh token if needed
+        const refreshSuccess = await refreshTokenIfNeeded();
         
-      // Extract user info from ID token if available
-      const idToken = getCookie('id_token');
-      if (idToken) {
-        try {
-          const payload = JSON.parse(atob(idToken.split('.')[1]));
-          setUserInfo({
-            firstName: payload.given_name || '',
-            lastName: payload.family_name || '',
-            email: payload.email || '',
-            phone: payload.phone_number || ''
-          });
-        } catch (err) {
-          console.error("Error parsing ID token:", err);
+        if (refreshSuccess && isTokenValid(getCookie('access_token'))) {
+          setIsAuthenticated(true);
+          
+          // Fetch user tasks using the api with automatic token refresh
+          getTasks()
+            .then(response => setTasks(response.data))
+            .catch(error => {
+              console.error("Error fetching tasks:", error);
+              // If we get a 401, token might be invalid despite passing isTokenValid
+              if (error.response && error.response.status === 401) {
+                removeCookie('access_token');
+                setIsAuthenticated(false);
+              }
+            });
+            
+          // Extract user info from ID token if available
+          const idToken = getCookie('id_token');
+          if (idToken) {
+            try {
+              const payload = JSON.parse(atob(idToken.split('.')[1]));
+              setUserInfo({
+                firstName: payload.given_name || '',
+                lastName: payload.family_name || '',
+                email: payload.email || '',
+                phone: payload.phone_number || ''
+              });
+            } catch (err) {
+              console.error("Error parsing ID token:", err);
+            }
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Set up periodic token refresh check (every 5 minutes)
+    const tokenRefreshInterval = setInterval(async () => {
+      if (isAuthenticated) {
+        const refreshSuccess = await refreshTokenIfNeeded();
+        if (!refreshSuccess) {
+          setIsAuthenticated(false);
         }
       }
-    }
-  }, []);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Set up user activity monitoring for proactive refresh
+    const handleUserActivity = async () => {
+      if (isAuthenticated) {
+        await refreshTokenIfNeeded();
+      }
+    };
+
+    // Add event listeners for user activity
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    let activityTimeout;
+
+    const throttledActivityHandler = () => {
+      clearTimeout(activityTimeout);
+      activityTimeout = setTimeout(handleUserActivity, 1000); // Throttle to once per second
+    };
+
+    activityEvents.forEach(event => {
+      document.addEventListener(event, throttledActivityHandler, true);
+    });
+
+    // Cleanup function
+    return () => {
+      clearInterval(tokenRefreshInterval);
+      clearTimeout(activityTimeout);
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, throttledActivityHandler, true);
+      });
+    };
+  }, [isAuthenticated]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
