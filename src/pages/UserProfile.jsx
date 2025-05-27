@@ -4,6 +4,7 @@ import { FaUser, FaEnvelope, FaPhone, FaSave, FaSignOutAlt, FaUserEdit, FaSpinne
 import { useNavigate } from 'react-router-dom'; // For redirecting
 import { removeCookie, getCookie } from '../utils/cookieUtils'; // Import removeCookie and getCookie
 import { cognitoConfig } from '../config/auth'; // Import cognitoConfig
+import api from '../utils/apiUtils'; // Import api for automatic token refresh
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL; // Assuming API_BASE is in .env
 
@@ -34,26 +35,15 @@ const UserProfile = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE}/profile`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
-          throw new Error(errorData.message || `Failed to fetch profile: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        setUser(data);
+        const response = await api.get('/profile');
+        const userData = response.data;
+        setUser(userData);
         // Initialize formData with fetched data (use lowercase keys from RDS)
         setFormData({
-          firstname: data.firstname || '',
-          lastname: data.lastname || '',
-          email: data.email || '',
-          phonenumber: data.phonenumber || '',
+          firstname: userData.firstname || '',
+          lastname: userData.lastname || '',
+          email: userData.email || '',
+          phonenumber: userData.phonenumber || '',
         });
       } catch (err) {
         console.error("Failed to fetch user profile:", err);

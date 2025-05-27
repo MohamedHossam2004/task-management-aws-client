@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { getCookie } from "../utils/cookieUtils"; // Import getCookie
+import { createTask } from "../utils/apiUtils";
 import {
   FaUser,
   FaFileAlt,
@@ -72,26 +73,7 @@ const CreateTask = () => {
       const payload = { ...form, file: fileData }
 
       // Replace with your actual API endpoint
-      const API_BASE = "https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com"
-      const token = getCookie('access_token');
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const res = await fetch(`${API_BASE}/tasks`, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        throw new Error("Failed to create task")
-      }
-
-      await res.json()
+      await createTask(payload)
       navigate("/tasks")
     } catch (err) {
       setError(err.message || "Something went wrong")

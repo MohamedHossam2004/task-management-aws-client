@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCookie } from '../utils/cookieUtils'; // Import getCookie
+import { getTask, updateTask, deleteTask } from '../utils/apiUtils';
 import {
   FaUser,
   FaFileAlt,
@@ -46,13 +47,8 @@ const UpdateTask = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { headers });
-        
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: res.statusText }));
-          throw new Error(errorData.message || `Failed to fetch task: ${res.statusText}`);
-        }
-        const data = await res.json();
+        const response = await getTask(taskId);
+        const data = response.data;
         
         // Format date to YYYY-MM-DD for input field
         if (data.due_date) {
@@ -109,26 +105,7 @@ const UpdateTask = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify(payload)
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: res.statusText }));
-        throw new Error(errorData.message || `Failed to update task: ${res.statusText}`);
-      }
-      
-      // Assuming the response might contain the updated task or a success message
-      // If the backend sends back the updated task, you might want to use it.
-      // For now, just parsing JSON if it exists.
-      try {
-        await res.json(); 
-      } catch (e) {
-        // Handle cases where response might not be JSON (e.g., 204 No Content)
-        console.log("Update response was not JSON or empty:", e)
-      }
+      await updateTask(taskId, payload);
       navigate('/tasks');
     } catch (err) {
       setError(err.message || 'Failed to update task');
@@ -155,16 +132,7 @@ const UpdateTask = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const res = await fetch(`${API_BASE}/tasks/${taskId}`, { 
-          method: 'DELETE',
-          headers: headers 
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: res.statusText }));
-          throw new Error(errorData.message || `Failed to delete task: ${res.statusText}`);
-        }
-        
+        await deleteTask(taskId);
         navigate('/tasks');
       } catch (error) {
         console.error("Failed to delete task:", error);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaChartBar, FaCalendarAlt, FaCheckCircle, FaHourglass, FaSpinner, FaClock, FaExclamationTriangle, FaFlag } from 'react-icons/fa';
 import { getCookie } from '../utils/cookieUtils'; // Import getCookie
+import { getTasks } from '../utils/apiUtils';
 
 const API_BASE = 'https://jw1gmhmdjj.execute-api.us-east-1.amazonaws.com';
 
@@ -44,13 +45,8 @@ const Analytics = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/tasks`, { headers });
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: res.statusText }));
-          throw new Error(errorData.message || `Failed to fetch tasks: ${res.statusText}`);
-        }
-        const data = await res.json();
-        setTasks(data);
+        const response = await getTasks();
+        setTasks(response.data);
         
         // Calculate statistics
         const today = new Date();

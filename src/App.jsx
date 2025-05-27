@@ -21,6 +21,7 @@ import Login from "./components/Login";
 import SignOut from "./components/SignOut";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getCookie, removeCookie, isTokenValid } from "./utils/cookieUtils";
+import { getTasks, createTask, updateTask, deleteTask, getTask } from "./utils/apiUtils";
 import { cognitoConfig } from "./config/auth";
 import SessionDebug from "./components/SessionDebug";
 import {
@@ -71,23 +72,13 @@ function App() {
     if (token && isTokenValid(token)) {
       setIsAuthenticated(true);
       
-      // Fetch user tasks using the token
-      fetch(`${API_BASE}/tasks`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! Status: ${res.status}`);
-          }
-          return res.json();
-        })
-        .then(setTasks)
+      // Fetch user tasks using the api with automatic token refresh
+      getTasks()
+        .then(response => setTasks(response.data))
         .catch(error => {
           console.error("Error fetching tasks:", error);
           // If we get a 401, token might be invalid despite passing isTokenValid
-          if (error.message.includes('401')) {
+          if (error.response && error.response.status === 401) {
             removeCookie('access_token');
             setIsAuthenticated(false);
           }
@@ -128,13 +119,14 @@ function App() {
 
     const payload = { ...form, file: fileData };
 
-    const res = await fetch(`${API_BASE}/tasks`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    alert("Task created");
-    setTasks([...tasks, data.task]);
+    try {
+      const response = await createTask(payload);
+      alert("Task created");
+      setTasks([...tasks, response.data.task]);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      alert("Failed to create task");
+    }
   };
 
   const handleUpdate = async () => {
@@ -148,24 +140,35 @@ function App() {
       };
     }
 
-    const res = await fetch(`${API_BASE}/tasks/${taskIdToUpdate}`, {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    alert("Task updated");
+    try {
+      await updateTask(taskIdToUpdate, payload);
+      alert("Task updated");
+      setTasks(tasks.filter((task) => task.taskId !== taskIdToUpdate));
+    } catch (error) {
+      console.error("Error updating task:", error);
+      alert("Failed to update task");
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch(`${API_BASE}/tasks/${id}`, { method: "DELETE" });
-    alert("Task deleted");
-    setTasks(tasks.filter((task) => task.taskId !== id));
+    try {
+      await deleteTask(id);
+      alert("Task deleted");
+      setTasks(tasks.filter((task) => task.taskId !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task");
+    }
   };
 
   const handleView = async () => {
-    const res = await fetch(`${API_BASE}/tasks/${taskIdToView}`);
-    const data = await res.json();
-    setViewedTask(data);
+    try {
+      const response = await getTask(taskIdToView);
+      setViewedTask(response.data);
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      alert("Failed to load task");
+    }
   };
 
   const toBase64 = (file) =>

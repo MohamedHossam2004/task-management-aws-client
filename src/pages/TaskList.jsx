@@ -13,11 +13,9 @@ import {
   FaSearch,
   FaFilter,
   FaExclamationTriangle,
-  FaCalendarAlt,
-  FaTasks,
-  FaUser,
 } from "react-icons/fa";
 import { getCookie } from "../utils/cookieUtils";
+import { getTasks, deleteTask } from "../utils/apiUtils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,18 +42,8 @@ const TaskList = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/tasks`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to fetch tasks: ${res.statusText}`);
-        }
-
-        const data = await res.json();
-        setTasks(data);
+        const response = await getTasks();
+        setTasks(response.data);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
         setError(error.message || "Failed to load tasks");
@@ -77,16 +65,7 @@ const TaskList = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/tasks/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to delete task: ${res.statusText}`);
-        }
+        await deleteTask(id);
 
         setTasks(tasks.filter(task => task.taskId !== id));
       } catch (error) {
