@@ -1,0 +1,1712 @@
+{
+    "Metadata": {
+        "AWSToolsMetrics": {
+            "IaC_Generator": "arn:aws:cloudformation:us-east-1:626635404703:generatedTemplate/a6209007-d163-4f72-97f1-a5374d643cd6"
+        }
+    },
+    "Parameters": {
+        "LambdaFunctionTaskmanagerlambdaCodeZipFile6kZxW": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "(Node.js and Python) The source code of your Lambda function. If you include your function source inline with this parameter, CFN places it in a file named ``index`` and zips it to create a [deployment package](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html). This zip file cannot exceed 4MB. For the ``Handler`` property, the first part of the handler identifier must be ``index``. For example, ``index.handler``.\n  When you specify source code inline for a Node.js function, the ``index`` file that CFN creates uses the extension ``.js``. This means that LAM treats the file as a CommonJS module. ES modules aren't supported for inline functions.\n   For JSON, you must escape quotes and special characters such as newline (``\\n``) with a backslash.\n If you specify a function that interacts with an AWS CloudFormation custom resource, you don't have to write your own functions to send responses to the custom resource that invoked the function. AWS CloudFormation provides a response module ([cfn-response](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html)) that simplifies sending responses. See [Using Lambda with CloudFormation](https://docs.aws.amazon.com/lambda/latest/dg/services-cloudformation.html) for details."
+        },
+        "LambdaFunctionTaskmanagerlambdaCodeS3Bucket8Ec50": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "An Amazon S3 bucket in the same AWS-Region as your function. The bucket can be in a different AWS-account."
+        },
+        "LambdaFunctionTaskmanagerlambdaCodeS3ObjectVersionWUBup": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "For versioned objects, the version of the deployment package object to use."
+        },
+        "LambdaFunctionEmailnotificationtasksCodeZipFileuA4HV": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "(Node.js and Python) The source code of your Lambda function. If you include your function source inline with this parameter, CFN places it in a file named ``index`` and zips it to create a [deployment package](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html). This zip file cannot exceed 4MB. For the ``Handler`` property, the first part of the handler identifier must be ``index``. For example, ``index.handler``.\n  When you specify source code inline for a Node.js function, the ``index`` file that CFN creates uses the extension ``.js``. This means that LAM treats the file as a CommonJS module. ES modules aren't supported for inline functions.\n   For JSON, you must escape quotes and special characters such as newline (``\\n``) with a backslash.\n If you specify a function that interacts with an AWS CloudFormation custom resource, you don't have to write your own functions to send responses to the custom resource that invoked the function. AWS CloudFormation provides a response module ([cfn-response](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-lambda-function-code-cfnresponsemodule.html)) that simplifies sending responses. See [Using Lambda with CloudFormation](https://docs.aws.amazon.com/lambda/latest/dg/services-cloudformation.html) for details."
+        },
+        "LambdaFunctionEmailnotificationtasksCodeImageUri6Xzl3": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "URI of a [container image](https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html) in the Amazon ECR registry."
+        },
+        "LambdaFunctionEmailnotificationtasksCodeS3ObjectVersionWjf09": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "For versioned objects, the version of the deployment package object to use."
+        },
+        "LambdaFunctionEmailnotificationtasksCodeS3Key9EO4s": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "The Amazon S3 key of the deployment package."
+        },
+        "LambdaFunctionTaskmanagerlambdaCodeImageUri6v3Kr": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "URI of a [container image](https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html) in the Amazon ECR registry."
+        },
+        "LambdaFunctionEmailnotificationtasksCodeS3Bucket6DKHj": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "An Amazon S3 bucket in the same AWS-Region as your function. The bucket can be in a different AWS-account."
+        },
+        "LambdaFunctionTaskmanagerlambdaCodeS3KeyTSpN8": {
+            "NoEcho": "true",
+            "Type": "String",
+            "Description": "The Amazon S3 key of the deployment package."
+        }
+    },
+    "Resources": {
+        "EC2RouteGQ": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTable"
+                },
+                "DestinationPrefixListId": "pl-63a5400a",
+                "GatewayId": "vpce-055ee700f9de150b1",
+                "VpcEndpointId": "vpce-055ee700f9de150b1"
+            }
+        },
+        "EC2SubnetRouteTableAssociationUf": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableCI"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetLY"
+                }
+            }
+        },
+        "SQSQueueTaskupdatequeue": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::SQS::Queue",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "SqsManagedSseEnabled": true,
+                "ReceiveMessageWaitTimeSeconds": 0,
+                "DelaySeconds": 0,
+                "RedrivePolicy": {
+                    "deadLetterTargetArn": "arn:aws:sqs:us-east-1:626635404703:dead-letter-queue-tasks",
+                    "maxReceiveCount": 10
+                },
+                "MessageRetentionPeriod": 345600,
+                "MaximumMessageSize": 262144,
+                "VisibilityTimeout": 30,
+                "QueueName": "task-update-queue"
+            }
+        },
+        "DynamoDBTableTasks": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::DynamoDB::Table",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "SSESpecification": {
+                    "SSEEnabled": false
+                },
+                "TableName": "tasks",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeType": "S",
+                        "AttributeName": "taskId"
+                    }
+                ],
+                "ContributorInsightsSpecification": {
+                    "Enabled": false
+                },
+                "BillingMode": "PAY_PER_REQUEST",
+                "PointInTimeRecoverySpecification": {
+                    "PointInTimeRecoveryEnabled": false
+                },
+                "WarmThroughput": {
+                    "ReadUnitsPerSecond": 12000,
+                    "WriteUnitsPerSecond": 4000
+                },
+                "KeySchema": [
+                    {
+                        "KeyType": "HASH",
+                        "AttributeName": "taskId"
+                    }
+                ],
+                "DeletionProtectionEnabled": false,
+                "TableClass": "STANDARD",
+                "Tags": [
+                    {
+                        "Value": "taskstable",
+                        "Key": "tasks-dynamodb"
+                    }
+                ],
+                "TimeToLiveSpecification": {
+                    "Enabled": false
+                }
+            }
+        },
+        "EC2SubnetNetworkAclAssociation": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "NetworkAclId": {
+                    "Ref": "EC2NetworkAcl"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetLY"
+                }
+            }
+        },
+        "EC2SubnetVh": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Subnet",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MapPublicIpOnLaunch": false,
+                "EnableDns64": false,
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "AvailabilityZoneId": "use1-az4",
+                "PrivateDnsNameOptionsOnLaunch": {
+                    "EnableResourceNameDnsARecord": false,
+                    "HostnameType": "ip-name",
+                    "EnableResourceNameDnsAAAARecord": false
+                },
+                "CidrBlock": "10.0.0.0/20",
+                "Ipv6Native": false,
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-subnet-public1-us-east-1a",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "ApiGatewayV2DeploymentVu": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "EC2SecurityGroupYD": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SecurityGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "GroupDescription": "Security group attached to instances to securely connect to task-manager-rds-db. Modification could lead to connection loss.",
+                "GroupName": "ec2-rds-1",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "DestinationSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "EC2SecurityGroupEW",
+                                "GroupId"
+                            ]
+                        },
+                        "Description": "Rule to allow connections to task-manager-rds-db from any instances this security group is attached to",
+                        "FromPort": 5432,
+                        "ToPort": 5432
+                    }
+                ]
+            }
+        },
+        "EC2RouteWB": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableLg"
+                },
+                "DestinationCidrBlock": {
+                    "Fn::GetAtt": [
+                        "EC2VPC",
+                        "CidrBlock"
+                    ]
+                },
+                "GatewayId": "local",
+                "VpcEndpointId": "local"
+            }
+        },
+        "IAMRoleLambdaIAMRole": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::Role",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::626635404703:policy/CognitoGetUser",
+                    "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonRDSFullAccess",
+                    "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+                ],
+                "MaxSessionDuration": 3600,
+                "RoleName": "Lambda_IAM_Role",
+                "Description": "Allows Lambda functions to call AWS services on your behalf.",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "EC2RouteFP": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableJQ"
+                },
+                "DestinationPrefixListId": "pl-63a5400a",
+                "GatewayId": "vpce-055ee700f9de150b1",
+                "VpcEndpointId": "vpce-055ee700f9de150b1"
+            }
+        },
+        "EC2SubnetNetworkAclAssociationLq": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "NetworkAclId": {
+                    "Ref": "EC2NetworkAcl"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetVh"
+                }
+            }
+        },
+        "EC2Instance": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Instance",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Tenancy": "default",
+                "SecurityGroups": [
+                    "ec2-rds-1",
+                    "Task_Manager_EC2_SG",
+                    "ec2-rds-2"
+                ],
+                "PrivateIpAddress": "10.0.3.254",
+                "UserData": "IyEvYmluL2Jhc2gKYXB0IHVwZGF0ZSAteQphcHQgaW5zdGFsbCAteSBub2RlanMgbnBtCm5wbSBpbnN0YWxsIC1nIHBtMg==",
+                "BlockDeviceMappings": [
+                    {
+                        "Ebs": {
+                            "SnapshotId": "snap-00ce73584d49f3a4e",
+                            "VolumeType": "gp3",
+                            "Iops": 3000,
+                            "VolumeSize": 8,
+                            "Encrypted": false,
+                            "DeleteOnTermination": true
+                        },
+                        "DeviceName": "/dev/xvda"
+                    }
+                ],
+                "IamInstanceProfile": {
+                    "Ref": "IAMInstanceProfileEC2IAMRole"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetVh"
+                },
+                "EbsOptimized": false,
+                "Volumes": [
+                    {
+                        "VolumeId": "vol-0a395f196cf1b4574",
+                        "Device": "/dev/xvda"
+                    }
+                ],
+                "NetworkInterfaces": [
+                    {
+                        "PrivateIpAddresses": [
+                            {
+                                "PrivateIpAddress": "10.0.3.254",
+                                "Primary": true
+                            }
+                        ],
+                        "SecondaryPrivateIpAddressCount": 0,
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref": "EC2SecurityGroupYD"
+                            },
+                            {
+                                "Ref": "EC2SecurityGroupR6"
+                            },
+                            {
+                                "Ref": "EC2SecurityGroup"
+                            }
+                        ],
+                        "Ipv6Addresses": [],
+                        "SubnetId": {
+                            "Ref": "EC2SubnetVh"
+                        },
+                        "AssociatePublicIpAddress": true,
+                        "NetworkInterfaceId": {
+                            "Ref": "EC2NetworkInterface"
+                        },
+                        "DeleteOnTermination": true
+                    }
+                ],
+                "ImageId": "ami-0f88e80871fd81e91",
+                "InstanceType": "t2.micro",
+                "Monitoring": false,
+                "Tags": [
+                    {
+                        "Value": "Task_Management_EC2",
+                        "Key": "Name"
+                    }
+                ],
+                "InstanceInitiatedShutdownBehavior": "stop",
+                "CpuOptions": {
+                    "ThreadsPerCore": 1,
+                    "CoreCount": 1
+                },
+                "AvailabilityZone": "us-east-1a",
+                "PrivateDnsNameOptions": {
+                    "EnableResourceNameDnsARecord": false,
+                    "HostnameType": "ip-name",
+                    "EnableResourceNameDnsAAAARecord": false
+                },
+                "SecurityGroupIds": [
+                    "sg-0639d82c818d35f65",
+                    "sg-0655ef3cd2a40ef79",
+                    "sg-0011b4f9acb70b7cb"
+                ],
+                "DisableApiTermination": false,
+                "KeyName": "Task_Manager_Key_Pair",
+                "SourceDestCheck": true,
+                "PlacementGroupName": "",
+                "VpcId": "vpc-050283d3ab8a03e92",
+                "State": {
+                    "Code": "16",
+                    "Name": "running"
+                },
+                "CreditSpecification": {
+                    "CPUCredits": "standard"
+                }
+            }
+        },
+        "IAMManagedPolicyPolicyLambdaSQSPermission": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "LambdaSQSPermission",
+                "Path": "/",
+                "Description": "",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": [
+                                "arn:aws:sqs:us-east-1:626635404703:task-update-queue"
+                            ],
+                            "Action": [
+                                "sqs:ReceiveMessage",
+                                "sqs:DeleteMessage",
+                                "sqs:GetQueueAttributes"
+                            ],
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Resource": "*",
+                            "Action": "ses:SendEmail",
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "IAMRoleLambdaEmailRole"
+                    }
+                ],
+                "Users": []
+            }
+        },
+        "S3BucketTaskmanagerattachments": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::S3::Bucket",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "PublicAccessBlockConfiguration": {
+                    "RestrictPublicBuckets": true,
+                    "IgnorePublicAcls": true,
+                    "BlockPublicPolicy": true,
+                    "BlockPublicAcls": true
+                },
+                "BucketName": "taskmanager-attachments",
+                "OwnershipControls": {
+                    "Rules": [
+                        {
+                            "ObjectOwnership": "BucketOwnerEnforced"
+                        }
+                    ]
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "BucketKeyEnabled": false,
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "IAMRoleEC2IAMRole": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::Role",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+                ],
+                "MaxSessionDuration": 3600,
+                "RoleName": "EC2_IAM_Role",
+                "Description": "Allows EC2 instances to call AWS services on your behalf.",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "LambdaEventSourceMapping": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "BatchSize": 10,
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunctionEmailnotificationtasks",
+                        "Arn"
+                    ]
+                },
+                "Enabled": true,
+                "EventSourceArn": {
+                    "Fn::GetAtt": [
+                        "SQSQueueTaskupdatequeue",
+                        "Arn"
+                    ]
+                },
+                "Tags": [],
+                "MetricsConfig": {
+                    "Metrics": []
+                },
+                "MaximumBatchingWindowInSeconds": 0
+            }
+        },
+        "LambdaPermissionFunctiontaskmanagerlambda": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Lambda::Permission",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunctionTaskmanagerlambda",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "SourceArn": "arn:aws:execute-api:us-east-1:626635404703:jw1gmhmdjj/*/*/tasks/{id}",
+                "Principal": "apigateway.amazonaws.com"
+            }
+        },
+        "EC2RouteNQ": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableCI"
+                },
+                "DestinationCidrBlock": {
+                    "Fn::GetAtt": [
+                        "EC2VPC",
+                        "CidrBlock"
+                    ]
+                },
+                "GatewayId": "local",
+                "VpcEndpointId": "local"
+            }
+        },
+        "EC2Route": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTable"
+                },
+                "DestinationCidrBlock": {
+                    "Fn::GetAtt": [
+                        "EC2VPC",
+                        "CidrBlock"
+                    ]
+                },
+                "GatewayId": "local",
+                "VpcEndpointId": "local"
+            }
+        },
+        "EC2RouteBA": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableJQ"
+                },
+                "DestinationCidrBlock": {
+                    "Fn::GetAtt": [
+                        "EC2VPC",
+                        "CidrBlock"
+                    ]
+                },
+                "GatewayId": "local",
+                "VpcEndpointId": "local"
+            }
+        },
+        "EC2SubnetNetworkAclAssociationII": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "NetworkAclId": {
+                    "Ref": "EC2NetworkAcl"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetBI"
+                }
+            }
+        },
+        "ApiGatewayV2DeploymentSy": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "EC2VPCDHCPOptionsAssociation": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "DhcpOptionsId": "dopt-02f8957e2af1e3fcf"
+            }
+        },
+        "LambdaPermissionFunctiontaskmanagerlambdaJL": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Lambda::Permission",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunctionTaskmanagerlambda",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "SourceArn": "arn:aws:execute-api:us-east-1:626635404703:jw1gmhmdjj/*/*/tasks",
+                "Principal": "apigateway.amazonaws.com"
+            }
+        },
+        "EC2SubnetBI": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Subnet",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MapPublicIpOnLaunch": false,
+                "EnableDns64": false,
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "AvailabilityZoneId": "use1-az4",
+                "PrivateDnsNameOptionsOnLaunch": {
+                    "EnableResourceNameDnsARecord": false,
+                    "HostnameType": "ip-name",
+                    "EnableResourceNameDnsAAAARecord": false
+                },
+                "CidrBlock": "10.0.128.0/20",
+                "Ipv6Native": false,
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-subnet-private1-us-east-1a",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "LambdaFunctionEmailnotificationtasks": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Lambda::Function",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MemorySize": 128,
+                "Description": "",
+                "TracingConfig": {
+                    "Mode": "PassThrough"
+                },
+                "Timeout": 3,
+                "RuntimeManagementConfig": {
+                    "UpdateRuntimeOn": "Auto"
+                },
+                "Handler": "index.handler",
+                "Code": {
+                    "S3ObjectVersion": {
+                        "Ref": "LambdaFunctionEmailnotificationtasksCodeS3ObjectVersionWjf09"
+                    },
+                    "S3Bucket": {
+                        "Ref": "LambdaFunctionEmailnotificationtasksCodeS3Bucket6DKHj"
+                    },
+                    "ZipFile": {
+                        "Ref": "LambdaFunctionEmailnotificationtasksCodeZipFileuA4HV"
+                    },
+                    "ImageUri": {
+                        "Ref": "LambdaFunctionEmailnotificationtasksCodeImageUri6Xzl3"
+                    },
+                    "S3Key": {
+                        "Ref": "LambdaFunctionEmailnotificationtasksCodeS3Key9EO4s"
+                    }
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "IAMRoleLambdaEmailRole",
+                        "Arn"
+                    ]
+                },
+                "FileSystemConfigs": [],
+                "FunctionName": "email-notification-tasks",
+                "Runtime": "nodejs22.x",
+                "PackageType": "Zip",
+                "LoggingConfig": {
+                    "LogFormat": "Text",
+                    "LogGroup": "/aws/lambda/email-notification-tasks"
+                },
+                "RecursiveLoop": "Terminate",
+                "EphemeralStorage": {
+                    "Size": 512
+                },
+                "Architectures": [
+                    "x86_64"
+                ]
+            }
+        },
+        "EC2NetworkInterface": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::NetworkInterface",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Description": "",
+                "PrivateIpAddress": "10.0.3.254",
+                "PrivateIpAddresses": [
+                    {
+                        "PrivateIpAddress": "10.0.3.254",
+                        "Primary": true
+                    }
+                ],
+                "SecondaryPrivateIpAddressCount": 0,
+                "Ipv6PrefixCount": 0,
+                "Ipv4Prefixes": [],
+                "Ipv4PrefixCount": 0,
+                "GroupSet": [
+                    "sg-0639d82c818d35f65",
+                    "sg-0655ef3cd2a40ef79",
+                    "sg-0011b4f9acb70b7cb"
+                ],
+                "Ipv6Prefixes": [],
+                "SubnetId": {
+                    "Ref": "EC2SubnetVh"
+                },
+                "SourceDestCheck": true,
+                "InterfaceType": "interface",
+                "Tags": [],
+                "PublicIpDnsNameOptions": {
+                    "DnsHostnameType": "public-ipv4-dns-name",
+                    "PublicIpv4DnsName": "ec2-54-161-40-157.compute-1.amazonaws.com"
+                }
+            }
+        },
+        "IAMManagedPolicyPolicyCognitoGetUser": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "CognitoGetUser",
+                "Path": "/",
+                "Description": "",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "*",
+                            "Action": "cognito-idp:GetUser",
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "IAMRoleLambdaIAMRole"
+                    }
+                ],
+                "Users": []
+            }
+        },
+        "CloudWatchAlarmEC2CPUUtil": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::CloudWatch::Alarm",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ComparisonOperator": "GreaterThanThreshold",
+                "TreatMissingData": "missing",
+                "Dimensions": [
+                    {
+                        "Value": "i-06d8b79c3e2ac287f",
+                        "Name": "InstanceId"
+                    }
+                ],
+                "Period": 300,
+                "EvaluationPeriods": 1,
+                "Namespace": "AWS/EC2",
+                "OKActions": [],
+                "AlarmActions": [
+                    {
+                        "Ref": "SNSTopicCloudWatchAlarmsTopic"
+                    }
+                ],
+                "MetricName": "CPUUtilization",
+                "ActionsEnabled": true,
+                "AlarmName": "EC2-CPUUtil",
+                "Statistic": "Average",
+                "InsufficientDataActions": [],
+                "DatapointsToAlarm": 1,
+                "Tags": [],
+                "Threshold": 70
+            }
+        },
+        "EC2InternetGateway": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::InternetGateway",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-igw",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "EC2SubnetRouteTableAssociation": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableJQ"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetBI"
+                }
+            }
+        },
+        "ApiGatewayV2DeploymentPL": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "EC2NetworkAcl": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::NetworkAcl",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "Tags": []
+            }
+        },
+        "EC2SubnetNetworkAclAssociationHU": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "NetworkAclId": {
+                    "Ref": "EC2NetworkAcl"
+                },
+                "SubnetId": {
+                    "Ref": "EC2Subnet"
+                }
+            }
+        },
+        "IAMManagedPolicyPolicyLambdaVPCNetworkInterfaceAccess": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "LambdaVPCNetworkInterfaceAccess",
+                "Path": "/",
+                "Description": "Allows Lambda to create and manage network interfaces in VPC",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "*",
+                            "Action": [
+                                "ec2:CreateNetworkInterface",
+                                "ec2:DescribeNetworkInterfaces",
+                                "ec2:DeleteNetworkInterface",
+                                "ec2:AssignPrivateIpAddresses",
+                                "ec2:UnassignPrivateIpAddresses"
+                            ],
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "IAMRoleCognitoToRDSLambdaRole"
+                    }
+                ],
+                "Users": []
+            }
+        },
+        "EC2SubnetRouteTableAssociationAZ": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableCI"
+                },
+                "SubnetId": {
+                    "Ref": "EC2SubnetVh"
+                }
+            }
+        },
+        "EC2VPCEndpoint": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::VPCEndpoint",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "PrivateDnsEnabled": false,
+                "IpAddressType": "not-specified",
+                "ServiceRegion": "us-east-1",
+                "DnsOptions": {
+                    "PrivateDnsOnlyForInboundResolverEndpoint": "NotSpecified",
+                    "DnsRecordIpType": "not-specified"
+                },
+                "ResourceConfigurationArn": "",
+                "SecurityGroupIds": [],
+                "SubnetIds": [],
+                "ServiceNetworkArn": "",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "RouteTableIds": [
+                    {
+                        "Ref": "EC2RouteTable"
+                    },
+                    {
+                        "Ref": "EC2RouteTableJQ"
+                    }
+                ],
+                "ServiceName": "com.amazonaws.us-east-1.s3",
+                "PolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "*",
+                            "Action": "*",
+                            "Effect": "Allow",
+                            "Principal": "*"
+                        }
+                    ]
+                },
+                "VpcEndpointType": "Gateway",
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-vpce-s3",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "IAMManagedPolicyPolicyserviceroleAWSLambdaBasicExecutionRole67ec3debdcb44a82853a238e229d6c17": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "AWSLambdaBasicExecutionRole-67ec3deb-dcb4-4a82-853a-238e229d6c17",
+                "Path": "/service-role/",
+                "Description": "",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "arn:aws:logs:us-east-1:626635404703:*",
+                            "Action": "logs:CreateLogGroup",
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Resource": [
+                                "arn:aws:logs:us-east-1:626635404703:log-group:/aws/lambda/RegisterHandler:*"
+                            ],
+                            "Action": [
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents"
+                            ],
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    "RegisterHandler-role-xg1kefek"
+                ],
+                "Users": []
+            }
+        },
+        "LogsLogGroupawslambdaemailnotificationtasks": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Logs::LogGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FieldIndexPolicies": [],
+                "LogGroupClass": "STANDARD",
+                "LogGroupName": "/aws/lambda/email-notification-tasks",
+                "DataProtectionPolicy": {}
+            }
+        },
+        "EC2RouteTableLg": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::RouteTable",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                }
+            }
+        },
+        "EC2SecurityGroupOb": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SecurityGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "GroupDescription": "Security group attached to database-1 to allow EC2 instances with specific security groups attached to connect to the database. Modification could lead to connection loss.",
+                "GroupName": "rds-ec2-2",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "Description": "Rule to allow connections from EC2 instances with sg-0011b4f9acb70b7cb attached",
+                        "FromPort": 5432,
+                        "SourceSecurityGroupId": "sg-0011b4f9acb70b7cb",
+                        "ToPort": 5432,
+                        "SourceSecurityGroupOwnerId": "626635404703"
+                    }
+                ]
+            }
+        },
+        "IAMRoleLambdaEmailRole": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::Role",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::626635404703:policy/LambdaSQSPermission"
+                ],
+                "MaxSessionDuration": 3600,
+                "RoleName": "LambdaEmailRole",
+                "Description": "Allows Lambda functions to call AWS services on your behalf.",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "EC2Subnet": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Subnet",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MapPublicIpOnLaunch": false,
+                "EnableDns64": false,
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "AvailabilityZoneId": "use1-az6",
+                "PrivateDnsNameOptionsOnLaunch": {
+                    "EnableResourceNameDnsARecord": false,
+                    "HostnameType": "ip-name",
+                    "EnableResourceNameDnsAAAARecord": false
+                },
+                "CidrBlock": "10.0.144.0/20",
+                "Ipv6Native": false,
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-subnet-private2-us-east-1b",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "EC2SecurityGroup": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SecurityGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "GroupDescription": "Security group attached to instances to securely connect to database-1. Modification could lead to connection loss.",
+                "GroupName": "ec2-rds-2",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "DestinationSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "EC2SecurityGroupOb",
+                                "GroupId"
+                            ]
+                        },
+                        "Description": "Rule to allow connections to database-1 from any instances this security group is attached to",
+                        "FromPort": 5432,
+                        "ToPort": 5432
+                    }
+                ]
+            }
+        },
+        "LambdaFunctionTaskmanagerlambda": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Lambda::Function",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MemorySize": 128,
+                "Description": "",
+                "TracingConfig": {
+                    "Mode": "PassThrough"
+                },
+                "Timeout": 3,
+                "RuntimeManagementConfig": {
+                    "UpdateRuntimeOn": "Auto"
+                },
+                "Handler": "index.handler",
+                "Code": {
+                    "S3ObjectVersion": {
+                        "Ref": "LambdaFunctionTaskmanagerlambdaCodeS3ObjectVersionWUBup"
+                    },
+                    "S3Bucket": {
+                        "Ref": "LambdaFunctionTaskmanagerlambdaCodeS3Bucket8Ec50"
+                    },
+                    "ZipFile": {
+                        "Ref": "LambdaFunctionTaskmanagerlambdaCodeZipFile6kZxW"
+                    },
+                    "ImageUri": {
+                        "Ref": "LambdaFunctionTaskmanagerlambdaCodeImageUri6v3Kr"
+                    },
+                    "S3Key": {
+                        "Ref": "LambdaFunctionTaskmanagerlambdaCodeS3KeyTSpN8"
+                    }
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "IAMRoleLambdaIAMRole",
+                        "Arn"
+                    ]
+                },
+                "FileSystemConfigs": [],
+                "FunctionName": "task-manager-lambda",
+                "Runtime": "nodejs22.x",
+                "PackageType": "Zip",
+                "LoggingConfig": {
+                    "LogFormat": "Text",
+                    "LogGroup": "/aws/lambda/task-manager-lambda"
+                },
+                "RecursiveLoop": "Terminate",
+                "EphemeralStorage": {
+                    "Size": 512
+                },
+                "Architectures": [
+                    "x86_64"
+                ]
+            }
+        },
+        "LogsLogGroupawslambdaCognitoUserRegistration": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Logs::LogGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FieldIndexPolicies": [],
+                "LogGroupClass": "STANDARD",
+                "LogGroupName": "/aws/lambda/CognitoUserRegistration",
+                "DataProtectionPolicy": {}
+            }
+        },
+        "IAMManagedPolicyPolicyserviceroleAWSLambdaBasicExecutionRole3d6453b3f23946f6b0ba19fcfbdae4d8": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "AWSLambdaBasicExecutionRole-3d6453b3-f239-46f6-b0ba-19fcfbdae4d8",
+                "Path": "/service-role/",
+                "Description": "",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "arn:aws:logs:us-east-1:626635404703:*",
+                            "Action": "logs:CreateLogGroup",
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Resource": [
+                                "arn:aws:logs:us-east-1:626635404703:log-group:/aws/lambda/LoginHandler:*"
+                            ],
+                            "Action": [
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents"
+                            ],
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    "LoginHandler-role-wl9o1zt6"
+                ],
+                "Users": []
+            }
+        },
+        "ApiGatewayV2DeploymentLo": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "CloudWatchAlarmMorethan10EmailshavebeenSent": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::CloudWatch::Alarm",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ComparisonOperator": "GreaterThanThreshold",
+                "TreatMissingData": "notBreaching",
+                "Period": 300,
+                "EvaluationPeriods": 1,
+                "Namespace": "AWS/SES",
+                "OKActions": [],
+                "AlarmActions": [
+                    {
+                        "Ref": "SNSTopicCloudWatchAlarmsTopic"
+                    }
+                ],
+                "MetricName": "Send",
+                "ActionsEnabled": true,
+                "AlarmName": "More than 10 Emails have been Sent",
+                "Statistic": "Average",
+                "InsufficientDataActions": [],
+                "DatapointsToAlarm": 1,
+                "Tags": [],
+                "Threshold": 10
+            }
+        },
+        "ApiGatewayV2Api": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Api",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "IpAddressType": "ipv4",
+                "RouteSelectionExpression": "$request.method $request.path",
+                "CorsConfiguration": {
+                    "MaxAge": 0,
+                    "AllowOrigins": [
+                        "https://54.161.40.157:5173"
+                    ],
+                    "AllowCredentials": true,
+                    "ExposeHeaders": [],
+                    "AllowMethods": [
+                        "GET",
+                        "POST",
+                        "OPTIONS",
+                        "PATCH",
+                        "PUT",
+                        "DELETE",
+                        "*",
+                        "HEAD"
+                    ],
+                    "AllowHeaders": [
+                        "content-type",
+                        "authorization",
+                        "x-amz-date",
+                        "x-api-key",
+                        "x-amz-security-token"
+                    ]
+                },
+                "ProtocolType": "HTTP",
+                "DisableExecuteApiEndpoint": false,
+                "Tags": {},
+                "Name": "task-api"
+            }
+        },
+        "EC2VolumeAttachment": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::VolumeAttachment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "InstanceId": "i-06d8b79c3e2ac287f",
+                "VolumeId": "vol-0a395f196cf1b4574",
+                "Device": "/dev/xvda"
+            }
+        },
+        "LogsLogGroupawslambdataskmanagerlambda": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::Logs::LogGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FieldIndexPolicies": [],
+                "LogGroupClass": "STANDARD",
+                "LogGroupName": "/aws/lambda/task-manager-lambda",
+                "DataProtectionPolicy": {}
+            }
+        },
+        "ApiGatewayV2DeploymentYU": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "IAMManagedPolicyPolicyserviceroleAWSLambdaBasicExecutionRole3daa18901e98479a8837108614ccd080": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::ManagedPolicy",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ManagedPolicyName": "AWSLambdaBasicExecutionRole-3daa1890-1e98-479a-8837-108614ccd080",
+                "Path": "/service-role/",
+                "Description": "",
+                "Groups": [],
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Resource": "arn:aws:logs:us-east-1:626635404703:*",
+                            "Action": "logs:CreateLogGroup",
+                            "Effect": "Allow"
+                        },
+                        {
+                            "Resource": [
+                                "arn:aws:logs:us-east-1:626635404703:log-group:/aws/lambda/SignUpRDS:*"
+                            ],
+                            "Action": [
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents"
+                            ],
+                            "Effect": "Allow"
+                        }
+                    ]
+                },
+                "Roles": [
+                    "SignUpRDS-role-c25x2thl"
+                ],
+                "Users": []
+            }
+        },
+        "EC2SubnetRouteTableAssociationEz": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "EC2Subnet"
+                }
+            }
+        },
+        "ApiGatewayV2DeploymentVi": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "ApiGatewayV2Deployment": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::ApiGatewayV2::Deployment",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "ApiId": {
+                    "Ref": "ApiGatewayV2Api"
+                },
+                "Description": "Automatic deployment triggered by changes to the Api configuration"
+            }
+        },
+        "SNSTopicCloudWatchAlarmsTopic": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::SNS::Topic",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "FifoTopic": false,
+                "Subscription": [
+                    {
+                        "Endpoint": "sarahelfeel04@gmail.com",
+                        "Protocol": "email"
+                    },
+                    {
+                        "Endpoint": "danya.danish@student.giu-uni.de",
+                        "Protocol": "email"
+                    }
+                ],
+                "ArchivePolicy": {},
+                "TopicName": "CloudWatch_Alarms_Topic"
+            }
+        },
+        "EC2KeyPairTaskManagerKeyPair": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::KeyPair",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "KeyName": "Task_Manager_Key_Pair",
+                "KeyType": "rsa",
+                "PublicKeyMaterial": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkknWWQmvHxIWlNGiKbkZivUJyzDPGZnvFDMVDM3khzR5ayaTrli/DyYr1enVvJ60SZIZYw6Ft95qXdoncKoEAYZTvL3QxLklv/L9LQ/dOtTYaxJ2BNULbS8Hrv3ehN1LbqvQF8lgF6X4op911lBhtBYOhNjpfvKPBIf/hGMLzOWu1pNEMAYRlhgQG0F49lfkkAW70ctXfAjiSPW7AkPOYgrQbDIaHWLr6KcsrUvckaYG/oRgYSD/khXiAJE6jsS3JBy6gBe8LSB1MjRWqg+Vl3wH/dnnAk/keAvn2XLbOjV902YD9Fxh1dPAqVVD1fep15+IGcu78Ni9uooPNiG+H Task_Manager_Key_Pair\n",
+                "Tags": []
+            }
+        },
+        "EC2Volume": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Volume",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MultiAttachEnabled": false,
+                "SnapshotId": "snap-00ce73584d49f3a4e",
+                "VolumeType": "gp3",
+                "Encrypted": false,
+                "Size": 8,
+                "AutoEnableIO": true,
+                "AvailabilityZone": "us-east-1a",
+                "Throughput": 125,
+                "Iops": 3000,
+                "Tags": []
+            }
+        },
+        "EC2RouteTableJQ": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::RouteTable",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-rtb-private1-us-east-1a",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "IAMRoleCognitoToRDSLambdaRole": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::Role",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::626635404703:policy/LambdaVPCNetworkInterfaceAccess",
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonRDSDataFullAccess"
+                ],
+                "MaxSessionDuration": 3600,
+                "RoleName": "CognitoToRDSLambdaRole",
+                "Description": "Allow Lambda to insert into RDS Databae",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "EC2SecurityGroupR6": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SecurityGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "GroupDescription": "Security Group for Task Manager EC2",
+                "GroupName": "Task_Manager_EC2_SG",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "tcp",
+                        "FromPort": 3001,
+                        "ToPort": 3001
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "tcp",
+                        "FromPort": 5173,
+                        "ToPort": 5173
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1",
+                        "FromPort": -1,
+                        "ToPort": -1
+                    }
+                ]
+            }
+        },
+        "SQSQueueDeadletterqueuetasks": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::SQS::Queue",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "SqsManagedSseEnabled": true,
+                "ReceiveMessageWaitTimeSeconds": 0,
+                "DelaySeconds": 0,
+                "MessageRetentionPeriod": 345600,
+                "MaximumMessageSize": 262144,
+                "VisibilityTimeout": 30,
+                "RedriveAllowPolicy": {
+                    "redrivePermission": "byQueue",
+                    "sourceQueueArns": [
+                        "arn:aws:sqs:us-east-1:626635404703:task-update-queue"
+                    ]
+                },
+                "QueueName": "dead-letter-queue-tasks"
+            }
+        },
+        "EC2VPC": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::VPC",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "EnableDnsSupport": true,
+                "InstanceTenancy": "default",
+                "EnableDnsHostnames": true,
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-vpc",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "EC2SubnetLY": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Subnet",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "MapPublicIpOnLaunch": false,
+                "EnableDns64": false,
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "AvailabilityZoneId": "use1-az6",
+                "PrivateDnsNameOptionsOnLaunch": {
+                    "EnableResourceNameDnsARecord": false,
+                    "HostnameType": "ip-name",
+                    "EnableResourceNameDnsAAAARecord": false
+                },
+                "CidrBlock": "10.0.16.0/20",
+                "Ipv6Native": false,
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-subnet-public2-us-east-1b",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "EC2RouteTable": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::RouteTable",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-rtb-private2-us-east-1b",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "EC2RouteTableCI": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::RouteTable",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "Tags": [
+                    {
+                        "Value": "Task_Manager-rtb-public",
+                        "Key": "Name"
+                    }
+                ]
+            }
+        },
+        "IAMInstanceProfileEC2IAMRole": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::IAM::InstanceProfile",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "IAMRoleEC2IAMRole"
+                    }
+                ],
+                "InstanceProfileName": {
+                    "Ref": "IAMRoleEC2IAMRole"
+                }
+            }
+        },
+        "EC2SecurityGroupEW": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::SecurityGroup",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "GroupDescription": "Security group attached to task-manager-rds-db to allow EC2 instances with specific security groups attached to connect to the database. Modification could lead to connection loss.",
+                "GroupName": "rds-ec2-1",
+                "VpcId": {
+                    "Ref": "EC2VPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "Description": "Rule to allow connections from EC2 instances with sg-0639d82c818d35f65 attached",
+                        "FromPort": 5432,
+                        "SourceSecurityGroupId": "sg-0639d82c818d35f65",
+                        "ToPort": 5432,
+                        "SourceSecurityGroupOwnerId": "626635404703"
+                    }
+                ]
+            }
+        },
+        "EC2RouteXE": {
+            "UpdateReplacePolicy": "Retain",
+            "Type": "AWS::EC2::Route",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "EC2RouteTableCI"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "EC2InternetGateway"
+                },
+                "VpcEndpointId": "igw-05fdebc27654f5d58"
+            }
+        }
+    }
+}
