@@ -55,11 +55,52 @@ aws cloudformation create-stack \
 
 ---
 
+## 📁 Project Structure
+
+```
+├── client/                                      # Frontend React application
+│   ├── src/                                    # React source code
+│   ├── public/                                 # Static assets
+│   ├── package.json                           # Frontend dependencies
+│   └── [other frontend config files]
+├── api/                                        # Lambda functions and API code
+├── cloudformation/                             # Infrastructure as Code
+│   ├── task-manager-template.yaml             # CloudFormation (YAML)
+│   └── task-manager-template.json             # CloudFormation (JSON)
+├── README.md                                   # Project documentation
+├── LICENSE                                     # MIT License
+└── .gitignore                                  # Git ignore rules
+```
+
 ## 🚀 Getting Started
 
+### Prerequisites
+- AWS CLI configured with appropriate permissions
+- Node.js (for local development)
+- AWS Account with required service limits
+
+### Quick Start
 1. **Clone the repository**
-2. **Deploy infrastructure** using the CloudFormation templates above
-3. **Follow the AWS Console walkthrough** to understand the setup
-4. **Explore the application** using the website walkthrough
+   ```bash
+   git clone https://github.com/MohamedHossam2004/task-management-aws-client.git
+   cd task-management-aws-client
+   ```
+
+2. **Deploy infrastructure** using CloudFormation
+   ```bash
+   aws cloudformation create-stack \
+     --stack-name task-manager-stack \
+     --template-body file://cloudformation/task-manager-template.yaml \
+     --capabilities CAPABILITY_IAM
+   ```
+
+3. **Set up the frontend** (for local development)
+   ```bash
+   cd client
+   npm install
+   npm run dev
+   ```
+
+4. **Follow the video walkthroughs** to understand the complete setup and usage
 
 For detailed deployment instructions and user guides, refer to the video walkthroughs above.
